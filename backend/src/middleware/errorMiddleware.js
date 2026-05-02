@@ -3,8 +3,8 @@ const errorMiddleware = (err, req, res, next) => {
 
   res.status(statusCode).json({
     message: err.message || 'Internal server error',
+    errors: err.errors,
   });
 };
 
 module.exports = errorMiddleware;
-
