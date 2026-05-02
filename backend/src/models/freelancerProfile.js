@@ -8,6 +8,12 @@ class FreelancerProfile extends Model {
       as: 'user',
       onDelete: 'CASCADE',
     });
+
+    FreelancerProfile.hasMany(models.Bid, {
+      foreignKey: 'freelancerId',
+      as: 'bids',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
@@ -48,4 +54,3 @@ FreelancerProfile.init(
 );
 
 module.exports = FreelancerProfile;
-

@@ -14,6 +14,12 @@ class Task extends Model {
       as: 'category',
       onDelete: 'SET NULL',
     });
+
+    Task.hasMany(models.Bid, {
+      foreignKey: 'taskId',
+      as: 'bids',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
@@ -57,4 +63,3 @@ Task.init(
 );
 
 module.exports = Task;
-

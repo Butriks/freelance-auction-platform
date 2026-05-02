@@ -4,6 +4,7 @@ const ClientProfile = require('./clientProfile');
 const FreelancerProfile = require('./freelancerProfile');
 const Category = require('./category');
 const Task = require('./task');
+const Bid = require('./bid');
 
 const models = {
   User,
@@ -11,6 +12,7 @@ const models = {
   FreelancerProfile,
   Category,
   Task,
+  Bid,
 };
 
 Object.values(models).forEach((model) => {
