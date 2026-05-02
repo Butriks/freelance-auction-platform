@@ -8,6 +8,12 @@ class ClientProfile extends Model {
       as: 'user',
       onDelete: 'CASCADE',
     });
+
+    ClientProfile.hasMany(models.Task, {
+      foreignKey: 'clientId',
+      as: 'tasks',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
@@ -40,4 +46,3 @@ ClientProfile.init(
 );
 
 module.exports = ClientProfile;
-
