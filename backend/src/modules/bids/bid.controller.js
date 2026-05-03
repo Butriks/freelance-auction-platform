@@ -1,5 +1,6 @@
 const bidService = require('./bid.service');
 const { createBidSchema, taskIdParamSchema } = require('./bid.validation');
+const { emitNewBid } = require('../../websocket/auctionSocket');
 
 const validate = (schema, data) => {
   const { error, value } = schema.validate(data, {
@@ -27,6 +28,9 @@ const createBid = async (req, res, next) => {
     const taskId = getTaskId(req.params);
     const data = validate(createBidSchema, req.body);
     const bid = await bidService.createBid(req.user.id, taskId, data);
+    const io = req.app.get('io');
+
+    emitNewBid(io, taskId, bid);
 
     res.status(201).json({ bid });
   } catch (error) {
@@ -49,4 +53,3 @@ module.exports = {
   createBid,
   listBidsByTask,
 };
-
