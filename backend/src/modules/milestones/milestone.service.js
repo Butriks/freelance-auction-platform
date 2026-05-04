@@ -1,0 +1,299 @@
+const { sequelize } = require('../../models');
+const {
+  Contract,
+  Task,
+  Milestone,
+  Escrow,
+  Payment,
+  ClientProfile,
+  FreelancerProfile,
+  User,
+} = require('../../models');
+
+const createHttpError = (statusCode, message) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const userInclude = () => ({
+  model: User,
+  as: 'user',
+  attributes: { exclude: ['passwordHash'] },
+});
+
+const contractSummaryInclude = [
+  {
+    model: Task,
+    as: 'task',
+  },
+  {
+    model: ClientProfile,
+    as: 'client',
+    include: [userInclude()],
+  },
+  {
+    model: FreelancerProfile,
+    as: 'freelancer',
+    include: [userInclude()],
+  },
+  {
+    model: Escrow,
+    as: 'escrow',
+  },
+];
+
+const findClientProfileByUserId = async (userId, options = {}) => ClientProfile.findOne({
+  where: { userId },
+  ...options,
+});
+
+const findFreelancerProfileByUserId = async (userId, options = {}) => FreelancerProfile.findOne({
+  where: { userId },
+  ...options,
+});
+
+const findContractOrFail = async (contractId, options = {}) => {
+  const contract = await Contract.findByPk(contractId, options);
+
+  if (!contract) {
+    throw createHttpError(404, 'Contract not found');
+  }
+
+  return contract;
+};
+
+const ensureContractParticipantAccess = async (user, contract, options = {}) => {
+  if (user.role === 'ADMIN') {
+    return;
+  }
+
+  if (user.role === 'CLIENT') {
+    const clientProfile = await findClientProfileByUserId(user.id, options);
+
+    if (clientProfile && clientProfile.id === contract.clientId) {
+      return;
+    }
+  }
+
+  if (user.role === 'FREELANCER') {
+    const freelancerProfile = await findFreelancerProfileByUserId(user.id, options);
+
+    if (freelancerProfile && freelancerProfile.id === contract.freelancerId) {
+      return;
+    }
+  }
+
+  throw createHttpError(403, 'Access denied');
+};
+
+const ensureClientOwnerAccess = async (user, contract, options = {}) => {
+  const clientProfile = await findClientProfileByUserId(user.id, options);
+
+  if (!clientProfile || clientProfile.id !== contract.clientId) {
+    throw createHttpError(403, 'Access denied');
+  }
+
+  return clientProfile;
+};
+
+const ensureFreelancerExecutorAccess = async (user, contract, options = {}) => {
+  const freelancerProfile = await findFreelancerProfileByUserId(user.id, options);
+
+  if (!freelancerProfile || freelancerProfile.id !== contract.freelancerId) {
+    throw createHttpError(403, 'Access denied');
+  }
+
+  return freelancerProfile;
+};
+
+const ensureContractIsActive = (contract) => {
+  if (contract.status !== 'ACTIVE') {
+    throw createHttpError(400, 'Contract must be ACTIVE');
+  }
+};
+
+const getMilestoneOrFail = async (milestoneId, options = {}) => {
+  const milestone = await Milestone.findByPk(milestoneId, {
+    include: [
+      {
+        model: Contract,
+        as: 'contract',
+        include: [
+          {
+            model: Task,
+            as: 'task',
+          },
+          {
+            model: Escrow,
+            as: 'escrow',
+          },
+        ],
+      },
+    ],
+    ...options,
+  });
+
+  if (!milestone) {
+    throw createHttpError(404, 'Milestone not found');
+  }
+
+  return milestone;
+};
+
+const getContractSummary = async (contractId, options = {}) => Contract.findByPk(contractId, {
+  include: contractSummaryInclude,
+  ...options,
+});
+
+const listMilestones = async (user, contractId) => {
+  const contract = await findContractOrFail(contractId);
+
+  await ensureContractParticipantAccess(user, contract);
+
+  return Milestone.findAll({
+    where: { contractId },
+    order: [['createdAt', 'ASC']],
+  });
+};
+
+const createMilestone = async (user, contractId, data) => {
+  const contract = await findContractOrFail(contractId);
+
+  ensureContractIsActive(contract);
+  await ensureClientOwnerAccess(user, contract);
+
+  return Milestone.create({
+    contractId,
+    title: data.title,
+    description: data.description,
+    amount: data.amount,
+    dueDate: data.dueDate,
+    status: 'PENDING',
+  });
+};
+
+const submitMilestone = async (user, milestoneId) => {
+  const milestone = await getMilestoneOrFail(milestoneId);
+  const { contract } = milestone;
+
+  ensureContractIsActive(contract);
+  await ensureFreelancerExecutorAccess(user, contract);
+
+  if (!['PENDING', 'REJECTED'].includes(milestone.status)) {
+    throw createHttpError(400, 'Milestone must be PENDING or REJECTED');
+  }
+
+  await milestone.update({ status: 'SUBMITTED' });
+
+  return milestone;
+};
+
+const approveMilestone = async (user, milestoneId) => {
+  return sequelize.transaction(async (transaction) => {
+    const milestone = await getMilestoneOrFail(milestoneId, { transaction });
+    const { contract } = milestone;
+
+    ensureContractIsActive(contract);
+
+    const clientProfile = await ensureClientOwnerAccess(user, contract, { transaction });
+
+    if (milestone.status !== 'SUBMITTED') {
+      throw createHttpError(400, 'Milestone must be SUBMITTED');
+    }
+
+    const freelancerProfile = await FreelancerProfile.findByPk(contract.freelancerId, {
+      transaction,
+    });
+
+    if (!freelancerProfile) {
+      throw createHttpError(404, 'Freelancer profile not found');
+    }
+
+    const escrow = contract.escrow;
+
+    if (!escrow) {
+      throw createHttpError(404, 'Escrow not found');
+    }
+
+    await milestone.update({ status: 'APPROVED' }, { transaction });
+
+    await Payment.create(
+      {
+        contractId: contract.id,
+        fromUserId: clientProfile.userId,
+        toUserId: freelancerProfile.userId,
+        amount: milestone.amount,
+        type: 'RELEASE',
+        status: 'MOCK_SUCCESS',
+      },
+      { transaction },
+    );
+
+    const approvedTotalRaw = await Milestone.sum('amount', {
+      where: {
+        contractId: contract.id,
+        status: 'APPROVED',
+      },
+      transaction,
+    });
+
+    const approvedTotal = Number(approvedTotalRaw || 0);
+    const escrowAmount = Number(escrow.amount);
+    const updates = {};
+    const taskUpdates = {};
+
+    if (approvedTotal >= escrowAmount) {
+      await escrow.update({ status: 'RELEASED' }, { transaction });
+      updates.status = 'COMPLETED';
+      updates.completedAt = new Date();
+      taskUpdates.status = 'COMPLETED';
+    } else {
+      await escrow.update({ status: 'PARTIALLY_RELEASED' }, { transaction });
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await contract.update(updates, { transaction });
+    }
+
+    if (Object.keys(taskUpdates).length > 0 && contract.task) {
+      await contract.task.update(taskUpdates, { transaction });
+    }
+
+    const refreshedMilestone = await Milestone.findByPk(milestone.id, { transaction });
+    const contractSummary = await getContractSummary(contract.id, { transaction });
+
+    return {
+      milestone: refreshedMilestone,
+      contractSummary,
+    };
+  });
+};
+
+const rejectMilestone = async (user, milestoneId, { reason }) => {
+  const milestone = await getMilestoneOrFail(milestoneId);
+  const { contract } = milestone;
+
+  ensureContractIsActive(contract);
+  await ensureClientOwnerAccess(user, contract);
+
+  if (milestone.status !== 'SUBMITTED') {
+    throw createHttpError(400, 'Milestone must be SUBMITTED');
+  }
+
+  await milestone.update({ status: 'REJECTED' });
+
+  return {
+    message: 'Milestone rejected',
+    reason,
+    milestone,
+  };
+};
+
+module.exports = {
+  listMilestones,
+  createMilestone,
+  submitMilestone,
+  approveMilestone,
+  rejectMilestone,
+};
