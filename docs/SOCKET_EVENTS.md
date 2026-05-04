@@ -66,3 +66,62 @@ POST /api/tasks/:taskId/bids
 
 Payload contains the created bid, including bid fields and freelancer profile data returned by the REST service.
 
+## join_contract_room
+
+Join realtime chat updates for one contract.
+
+```js
+socket.emit('join_contract_room', { contractId: 1 }, (response) => {
+  console.log(response);
+});
+```
+
+Success response:
+
+```json
+{
+  "ok": true,
+  "contractId": 1,
+  "room": "contract_1"
+}
+```
+
+Only contract participants and `ADMIN` can join. The server also emits `contract_room_joined`.
+
+## leave_contract_room
+
+Leave contract chat updates.
+
+```js
+socket.emit('leave_contract_room', { contractId: 1 }, (response) => {
+  console.log(response);
+});
+```
+
+The server also emits `contract_room_left`.
+
+## new_message
+
+Emitted to room `contract_<contractId>` after a message is successfully created through:
+
+```text
+POST /api/contracts/:contractId/messages
+```
+
+Payload contains:
+
+```json
+{
+  "id": 1,
+  "contractId": 1,
+  "senderId": 2,
+  "text": "Hello, I have uploaded the first version.",
+  "createdAt": "2026-05-05T10:00:00.000Z",
+  "sender": {
+    "id": 2,
+    "email": "user@example.com",
+    "role": "FREELANCER",
+    "status": "ACTIVE"
+  }
+}
+```

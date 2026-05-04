@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const socketAuthMiddleware = require('./socketAuthMiddleware');
 const { registerAuctionSocketHandlers } = require('./auctionSocket');
+const { registerChatSocketHandlers } = require('./chatSocket');
 
 const initializeSocketServer = (httpServer) => {
   const io = new Server(httpServer, {
@@ -18,6 +19,7 @@ const initializeSocketServer = (httpServer) => {
     );
 
     registerAuctionSocketHandlers(socket);
+    registerChatSocketHandlers(socket);
 
     socket.on('disconnect', () => {
       console.log(
@@ -30,4 +32,3 @@ const initializeSocketServer = (httpServer) => {
 };
 
 module.exports = initializeSocketServer;
-

@@ -26,6 +26,12 @@ class User extends Model {
       as: 'receivedReviews',
       onDelete: 'CASCADE',
     });
+
+    User.hasMany(models.Message, {
+      foreignKey: 'senderId',
+      as: 'sentMessages',
+      onDelete: 'RESTRICT',
+    });
   }
 }
 

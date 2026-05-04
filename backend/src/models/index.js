@@ -10,6 +10,7 @@ const Milestone = require('./milestone');
 const Escrow = require('./escrow');
 const Payment = require('./payment');
 const Review = require('./review');
+const Message = require('./message');
 
 const models = {
   User,
@@ -23,6 +24,7 @@ const models = {
   Escrow,
   Payment,
   Review,
+  Message,
 };
 
 Object.values(models).forEach((model) => {
