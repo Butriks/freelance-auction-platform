@@ -7,6 +7,8 @@ const {
   ClientProfile,
   FreelancerProfile,
 } = require('../../models');
+const { createNotification } = require('../../services/notificationService');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -150,8 +152,8 @@ const recalculateUserRating = async (toUserId, targetRole, transaction) => {
   return roundedRating;
 };
 
-const createReview = async (user, contractId, data) => {
-  return sequelize.transaction(async (transaction) => {
+const createReview = async (user, contractId, data, options = {}) => {
+  const result = await sequelize.transaction(async (transaction) => {
     const contract = await findContractOrFail(contractId, { transaction });
 
     if (contract.status !== 'COMPLETED') {
@@ -203,6 +205,7 @@ const createReview = async (user, contractId, data) => {
       return {
         review: createdReview,
         updatedRating,
+        toUserId,
       };
     } catch (error) {
       if (error.name === 'SequelizeUniqueConstraintError') {
@@ -212,6 +215,30 @@ const createReview = async (user, contractId, data) => {
       throw error;
     }
   });
+
+  await createNotification({
+    userId: result.toUserId,
+    title: 'New review',
+    message: 'You received a new review.',
+    type: 'REVIEW_CREATED',
+    io: options.io,
+  });
+
+  await createLog({
+    userId: user.id,
+    action: 'REVIEW_CREATED',
+    entityType: 'Review',
+    entityId: result.review.id,
+    metadata: {
+      contractId,
+      toUserId: result.toUserId,
+    },
+  });
+
+  return {
+    review: result.review,
+    updatedRating: result.updatedRating,
+  };
 };
 
 const getContractReviews = async (user, contractId) => {

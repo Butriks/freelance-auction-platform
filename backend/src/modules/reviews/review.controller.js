@@ -29,7 +29,8 @@ const createReview = async (req, res, next) => {
   try {
     const { contractId } = validate(contractIdParamSchema, req.params);
     const data = validate(createReviewSchema, req.body);
-    const result = await reviewService.createReview(req.user, contractId, data);
+    const io = req.app.get('io');
+    const result = await reviewService.createReview(req.user, contractId, data, { io });
 
     res.status(201).json(result);
   } catch (error) {
@@ -65,4 +66,3 @@ module.exports = {
   getContractReviews,
   getUserReviews,
 };
-

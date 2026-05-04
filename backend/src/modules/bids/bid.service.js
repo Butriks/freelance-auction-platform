@@ -5,6 +5,8 @@ const {
   ClientProfile,
   User,
 } = require('../../models');
+const { createNotification } = require('../../services/notificationService');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -60,7 +62,7 @@ const getBidOrFail = async (bidId) => Bid.findByPk(bidId, {
   include: bidIncludes,
 });
 
-const createBid = async (userId, taskId, data) => {
+const createBid = async (userId, taskId, data, options = {}) => {
   const task = await findTaskOrFail(taskId);
 
   if (task.status !== 'OPEN') {
@@ -94,7 +96,28 @@ const createBid = async (userId, taskId, data) => {
       status: 'PENDING',
     });
 
-    return getBidOrFail(bid.id);
+    const createdBid = await getBidOrFail(bid.id);
+
+    await createNotification({
+      userId: task.client.userId,
+      title: 'New bid received',
+      message: 'A freelancer submitted a new bid for your task.',
+      type: 'NEW_BID',
+      io: options.io,
+    });
+
+    await createLog({
+      userId,
+      action: 'BID_CREATED',
+      entityType: 'Bid',
+      entityId: bid.id,
+      metadata: {
+        taskId,
+        freelancerId: freelancerProfile.id,
+      },
+    });
+
+    return createdBid;
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       throw createHttpError(409, 'Bid already exists for this task');
@@ -130,4 +153,3 @@ module.exports = {
   createBid,
   listBidsByTask,
 };
-

@@ -6,6 +6,7 @@ const {
   ClientProfile,
   FreelancerProfile,
 } = require('../../models');
+const { createLog } = require('../../services/logService');
 
 const SALT_ROUNDS = 10;
 
@@ -48,7 +49,7 @@ const register = async (data) => {
   }
 
   try {
-    return await sequelize.transaction(async (transaction) => {
+    const result = await sequelize.transaction(async (transaction) => {
       const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
 
       const user = await User.create(
@@ -86,6 +87,16 @@ const register = async (data) => {
 
       return buildAuthResponse(user);
     });
+
+    await createLog({
+      userId: result.user.id,
+      action: 'USER_REGISTERED',
+      entityType: 'User',
+      entityId: result.user.id,
+      metadata: { role: result.user.role },
+    });
+
+    return result;
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
       throw createHttpError(409, 'Email already exists');

@@ -11,6 +11,8 @@ const {
   Payment,
   User,
 } = require('../../models');
+const { createNotification } = require('../../services/notificationService');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -125,8 +127,8 @@ const getFullContractById = async (contractId) => {
   return contract;
 };
 
-const acceptBid = async (userId, taskId, bidId) => {
-  const contractId = await sequelize.transaction(async (transaction) => {
+const acceptBid = async (userId, taskId, bidId, options = {}) => {
+  const result = await sequelize.transaction(async (transaction) => {
     const clientProfile = await findClientProfileByUserId(userId, { transaction });
 
     if (!clientProfile) {
@@ -236,7 +238,10 @@ const acceptBid = async (userId, taskId, bidId) => {
         { transaction },
       );
 
-      return contract.id;
+      return {
+        contractId: contract.id,
+        freelancerUserId: freelancerProfile.userId,
+      };
     } catch (error) {
       if (error.name === 'SequelizeUniqueConstraintError') {
         throw createHttpError(409, 'Contract already exists for this task');
@@ -246,7 +251,29 @@ const acceptBid = async (userId, taskId, bidId) => {
     }
   });
 
-  return getFullContractById(contractId);
+  const contract = await getFullContractById(result.contractId);
+
+  await createNotification({
+    userId: result.freelancerUserId,
+    title: 'Your bid was accepted',
+    message: 'Your bid was accepted and a contract was created.',
+    type: 'BID_ACCEPTED',
+    io: options.io,
+  });
+
+  await createLog({
+    userId,
+    action: 'CONTRACT_CREATED',
+    entityType: 'Contract',
+    entityId: contract.id,
+    metadata: {
+      taskId,
+      bidId,
+      freelancerId: contract.freelancerId,
+    },
+  });
+
+  return contract;
 };
 
 const getMyContracts = async (user, { status, limit, offset }) => {

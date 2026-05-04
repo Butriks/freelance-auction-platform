@@ -41,8 +41,8 @@ const createMessage = async (req, res, next) => {
   try {
     const { contractId } = validate(contractIdParamSchema, req.params);
     const data = validate(createMessageSchema, req.body);
-    const message = await messageService.createMessage(req.user, contractId, data);
     const io = req.app.get('io');
+    const message = await messageService.createMessage(req.user, contractId, data, { io });
 
     emitNewMessage(io, contractId, message);
 
@@ -56,4 +56,3 @@ module.exports = {
   getContractMessages,
   createMessage,
 };
-

@@ -22,6 +22,12 @@ const socket = io('http://localhost:5000', {
 
 The backend verifies `socket.handshake.auth.token`. Missing, invalid, expired, or blocked-user tokens are rejected.
 
+After successful auth, the socket automatically joins a personal room:
+
+```text
+user_<userId>
+```
+
 ## join_task_room
 
 Join realtime updates for one task.
@@ -123,5 +129,24 @@ Payload contains:
     "role": "FREELANCER",
     "status": "ACTIVE"
   }
+}
+```
+
+## notification_created
+
+Emitted to room `user_<userId>` after a new notification is created for the user.
+
+Payload contains the saved notification, for example:
+
+```json
+{
+  "id": 10,
+  "userId": 2,
+  "title": "New message",
+  "message": "You received a new message in contract chat.",
+  "type": "NEW_MESSAGE",
+  "isRead": false,
+  "createdAt": "2026-05-05T12:00:00.000Z",
+  "updatedAt": "2026-05-05T12:00:00.000Z"
 }
 ```

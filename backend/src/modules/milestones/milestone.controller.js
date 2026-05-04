@@ -51,7 +51,8 @@ const createMilestone = async (req, res, next) => {
 const submitMilestone = async (req, res, next) => {
   try {
     const { id } = validate(milestoneIdParamSchema, req.params);
-    const milestone = await milestoneService.submitMilestone(req.user, id);
+    const io = req.app.get('io');
+    const milestone = await milestoneService.submitMilestone(req.user, id, { io });
 
     res.json({ milestone });
   } catch (error) {
@@ -62,7 +63,8 @@ const submitMilestone = async (req, res, next) => {
 const approveMilestone = async (req, res, next) => {
   try {
     const { id } = validate(milestoneIdParamSchema, req.params);
-    const result = await milestoneService.approveMilestone(req.user, id);
+    const io = req.app.get('io');
+    const result = await milestoneService.approveMilestone(req.user, id, { io });
 
     res.json(result);
   } catch (error) {
@@ -74,7 +76,8 @@ const rejectMilestone = async (req, res, next) => {
   try {
     const { id } = validate(milestoneIdParamSchema, req.params);
     const data = validate(rejectMilestoneSchema, req.body);
-    const result = await milestoneService.rejectMilestone(req.user, id, data);
+    const io = req.app.get('io');
+    const result = await milestoneService.rejectMilestone(req.user, id, data, { io });
 
     res.json(result);
   } catch (error) {
@@ -89,4 +92,3 @@ module.exports = {
   approveMilestone,
   rejectMilestone,
 };
-

@@ -5,6 +5,7 @@ const {
   ClientProfile,
   User,
 } = require('../../models');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -86,7 +87,20 @@ const createTask = async (userId, data) => {
     status: 'OPEN',
   });
 
-  return getTaskOrFail(task.id);
+  const createdTask = await getTaskOrFail(task.id);
+
+  await createLog({
+    userId,
+    action: 'TASK_CREATED',
+    entityType: 'Task',
+    entityId: task.id,
+    metadata: {
+      clientId: clientProfile.id,
+      categoryId: data.categoryId,
+    },
+  });
+
+  return createdTask;
 };
 
 const listTasks = async ({
@@ -163,4 +177,3 @@ module.exports = {
   updateTask,
   deleteTask,
 };
-

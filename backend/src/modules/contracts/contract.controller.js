@@ -27,7 +27,8 @@ const validate = (schema, data) => {
 const acceptBid = async (req, res, next) => {
   try {
     const { taskId, bidId } = validate(acceptBidParamsSchema, req.params);
-    const contract = await contractService.acceptBid(req.user.id, taskId, bidId);
+    const io = req.app.get('io');
+    const contract = await contractService.acceptBid(req.user.id, taskId, bidId, { io });
 
     res.status(201).json({ contract });
   } catch (error) {
@@ -62,4 +63,3 @@ module.exports = {
   getMyContracts,
   getContractById,
 };
-

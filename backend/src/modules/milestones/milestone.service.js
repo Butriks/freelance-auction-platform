@@ -9,6 +9,8 @@ const {
   FreelancerProfile,
   User,
 } = require('../../models');
+const { createNotification } = require('../../services/notificationService');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -173,7 +175,7 @@ const createMilestone = async (user, contractId, data) => {
   });
 };
 
-const submitMilestone = async (user, milestoneId) => {
+const submitMilestone = async (user, milestoneId, options = {}) => {
   const milestone = await getMilestoneOrFail(milestoneId);
   const { contract } = milestone;
 
@@ -186,11 +188,31 @@ const submitMilestone = async (user, milestoneId) => {
 
   await milestone.update({ status: 'SUBMITTED' });
 
+  const clientProfile = await ClientProfile.findByPk(contract.clientId);
+
+  if (clientProfile) {
+    await createNotification({
+      userId: clientProfile.userId,
+      title: 'Milestone submitted',
+      message: 'A freelancer submitted a milestone for review.',
+      type: 'MILESTONE_SUBMITTED',
+      io: options.io,
+    });
+  }
+
+  await createLog({
+    userId: user.id,
+    action: 'MILESTONE_SUBMITTED',
+    entityType: 'Milestone',
+    entityId: milestone.id,
+    metadata: { contractId: contract.id },
+  });
+
   return milestone;
 };
 
-const approveMilestone = async (user, milestoneId) => {
-  return sequelize.transaction(async (transaction) => {
+const approveMilestone = async (user, milestoneId, options = {}) => {
+  const result = await sequelize.transaction(async (transaction) => {
     const milestone = await getMilestoneOrFail(milestoneId, { transaction });
     const { contract } = milestone;
 
@@ -266,11 +288,55 @@ const approveMilestone = async (user, milestoneId) => {
     return {
       milestone: refreshedMilestone,
       contractSummary,
+      freelancerUserId: freelancerProfile.userId,
+      clientUserId: clientProfile.userId,
+      contractCompleted: updates.status === 'COMPLETED',
     };
   });
+
+  await createNotification({
+    userId: result.freelancerUserId,
+    title: 'Milestone approved',
+    message: 'Your milestone was approved.',
+    type: 'MILESTONE_APPROVED',
+    io: options.io,
+  });
+
+  if (result.contractCompleted) {
+    await createNotification({
+      userId: result.clientUserId,
+      title: 'Contract completed',
+      message: 'The contract has been completed.',
+      type: 'CONTRACT_COMPLETED',
+      io: options.io,
+    });
+    await createNotification({
+      userId: result.freelancerUserId,
+      title: 'Contract completed',
+      message: 'The contract has been completed.',
+      type: 'CONTRACT_COMPLETED',
+      io: options.io,
+    });
+  }
+
+  await createLog({
+    userId: user.id,
+    action: 'MILESTONE_APPROVED',
+    entityType: 'Milestone',
+    entityId: result.milestone.id,
+    metadata: {
+      contractId: result.contractSummary.id,
+      contractCompleted: result.contractCompleted,
+    },
+  });
+
+  return {
+    milestone: result.milestone,
+    contractSummary: result.contractSummary,
+  };
 };
 
-const rejectMilestone = async (user, milestoneId, { reason }) => {
+const rejectMilestone = async (user, milestoneId, { reason }, options = {}) => {
   const milestone = await getMilestoneOrFail(milestoneId);
   const { contract } = milestone;
 
@@ -282,6 +348,29 @@ const rejectMilestone = async (user, milestoneId, { reason }) => {
   }
 
   await milestone.update({ status: 'REJECTED' });
+
+  const freelancerProfile = await FreelancerProfile.findByPk(contract.freelancerId);
+
+  if (freelancerProfile) {
+    await createNotification({
+      userId: freelancerProfile.userId,
+      title: 'Milestone rejected',
+      message: 'Your milestone was rejected.',
+      type: 'MILESTONE_REJECTED',
+      io: options.io,
+    });
+  }
+
+  await createLog({
+    userId: user.id,
+    action: 'MILESTONE_REJECTED',
+    entityType: 'Milestone',
+    entityId: milestone.id,
+    metadata: {
+      contractId: contract.id,
+      reason,
+    },
+  });
 
   return {
     message: 'Milestone rejected',

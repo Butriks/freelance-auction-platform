@@ -32,6 +32,18 @@ class User extends Model {
       as: 'sentMessages',
       onDelete: 'RESTRICT',
     });
+
+    User.hasMany(models.Notification, {
+      foreignKey: 'userId',
+      as: 'notifications',
+      onDelete: 'CASCADE',
+    });
+
+    User.hasMany(models.Log, {
+      foreignKey: 'userId',
+      as: 'logs',
+      onDelete: 'SET NULL',
+    });
   }
 }
 

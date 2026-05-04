@@ -27,8 +27,8 @@ const createBid = async (req, res, next) => {
   try {
     const taskId = getTaskId(req.params);
     const data = validate(createBidSchema, req.body);
-    const bid = await bidService.createBid(req.user.id, taskId, data);
     const io = req.app.get('io');
+    const bid = await bidService.createBid(req.user.id, taskId, data, { io });
 
     emitNewBid(io, taskId, bid);
 

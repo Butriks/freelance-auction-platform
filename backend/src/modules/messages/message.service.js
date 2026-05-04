@@ -5,6 +5,8 @@ const {
   ClientProfile,
   FreelancerProfile,
 } = require('../../models');
+const { createNotification } = require('../../services/notificationService');
+const { createLog } = require('../../services/logService');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -98,7 +100,7 @@ const getContractMessages = async (user, contractId, { limit, offset }) => {
   };
 };
 
-const createMessage = async (user, contractId, { text }) => {
+const createMessage = async (user, contractId, { text }, options = {}) => {
   const contract = await findContractOrFail(contractId);
 
   ensureContractAccess(user, contract);
@@ -109,10 +111,53 @@ const createMessage = async (user, contractId, { text }) => {
     text,
   });
 
-  return Message.findByPk(createdMessage.id, {
+  const message = await Message.findByPk(createdMessage.id, {
     attributes: ['id', 'contractId', 'senderId', 'text', 'createdAt'],
     include: [senderInclude],
   });
+
+  const clientUserId = contract.client && contract.client.user
+    ? contract.client.user.id
+    : null;
+  const freelancerUserId = contract.freelancer && contract.freelancer.user
+    ? contract.freelancer.user.id
+    : null;
+  const recipientIds = [];
+
+  if (user.role === 'ADMIN') {
+    if (clientUserId) {
+      recipientIds.push(clientUserId);
+    }
+    if (freelancerUserId && freelancerUserId !== clientUserId) {
+      recipientIds.push(freelancerUserId);
+    }
+  } else if (user.role === 'CLIENT') {
+    if (freelancerUserId) {
+      recipientIds.push(freelancerUserId);
+    }
+  } else if (user.role === 'FREELANCER') {
+    if (clientUserId) {
+      recipientIds.push(clientUserId);
+    }
+  }
+
+  await Promise.all(recipientIds.map((recipientUserId) => createNotification({
+    userId: recipientUserId,
+    title: 'New message',
+    message: 'You received a new message in contract chat.',
+    type: 'NEW_MESSAGE',
+    io: options.io,
+  })));
+
+  await createLog({
+    userId: user.id,
+    action: 'MESSAGE_CREATED',
+    entityType: 'Message',
+    entityId: message.id,
+    metadata: { contractId },
+  });
+
+  return message;
 };
 
 module.exports = {
@@ -121,4 +166,3 @@ module.exports = {
   getContractMessages,
   createMessage,
 };
-
