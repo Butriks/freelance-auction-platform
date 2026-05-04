@@ -43,6 +43,12 @@ class Contract extends Model {
       as: 'payments',
       onDelete: 'CASCADE',
     });
+
+    Contract.hasMany(models.Review, {
+      foreignKey: 'contractId',
+      as: 'reviews',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
@@ -91,4 +97,3 @@ Contract.init(
 );
 
 module.exports = Contract;
-

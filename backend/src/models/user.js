@@ -14,6 +14,18 @@ class User extends Model {
       as: 'freelancerProfile',
       onDelete: 'CASCADE',
     });
+
+    User.hasMany(models.Review, {
+      foreignKey: 'fromUserId',
+      as: 'givenReviews',
+      onDelete: 'CASCADE',
+    });
+
+    User.hasMany(models.Review, {
+      foreignKey: 'toUserId',
+      as: 'receivedReviews',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
@@ -50,4 +62,3 @@ User.init(
 );
 
 module.exports = User;
-
