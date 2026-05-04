@@ -14,6 +14,11 @@ class Bid extends Model {
       as: 'freelancer',
       onDelete: 'CASCADE',
     });
+
+    Bid.hasOne(models.Contract, {
+      foreignKey: 'acceptedBidId',
+      as: 'contract',
+    });
   }
 }
 
@@ -59,4 +64,3 @@ Bid.init(
 );
 
 module.exports = Bid;
-

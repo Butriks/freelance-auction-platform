@@ -14,6 +14,12 @@ class FreelancerProfile extends Model {
       as: 'bids',
       onDelete: 'CASCADE',
     });
+
+    FreelancerProfile.hasMany(models.Contract, {
+      foreignKey: 'freelancerId',
+      as: 'contracts',
+      onDelete: 'CASCADE',
+    });
   }
 }
 

@@ -14,6 +14,12 @@ class ClientProfile extends Model {
       as: 'tasks',
       onDelete: 'CASCADE',
     });
+
+    ClientProfile.hasMany(models.Contract, {
+      foreignKey: 'clientId',
+      as: 'contracts',
+      onDelete: 'CASCADE',
+    });
   }
 }
 

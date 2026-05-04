@@ -20,6 +20,12 @@ class Task extends Model {
       as: 'bids',
       onDelete: 'CASCADE',
     });
+
+    Task.hasOne(models.Contract, {
+      foreignKey: 'taskId',
+      as: 'contract',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
