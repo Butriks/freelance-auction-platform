@@ -49,12 +49,9 @@ function RegisterPage() {
 
     try {
       await register(payload);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message
-        || 'Unable to create account right now.',
-      );
+      setError(requestError.message || 'Unable to create account right now.');
     } finally {
       setLoading(false);
     }
@@ -69,22 +66,13 @@ function RegisterPage() {
       </div>
 
       <form className="form-grid" onSubmit={handleSubmit}>
-        <div className="segmented-control">
-          <button
-            className={`segment${form.role === 'CLIENT' ? ' segment--active' : ''}`}
-            type="button"
-            onClick={() => setForm((current) => ({ ...current, role: 'CLIENT' }))}
-          >
-            Client
-          </button>
-          <button
-            className={`segment${form.role === 'FREELANCER' ? ' segment--active' : ''}`}
-            type="button"
-            onClick={() => setForm((current) => ({ ...current, role: 'FREELANCER' }))}
-          >
-            Freelancer
-          </button>
-        </div>
+        <label className="form-field">
+          <span>Role</span>
+          <select name="role" value={form.role} onChange={handleChange}>
+            <option value="CLIENT">Client</option>
+            <option value="FREELANCER">Freelancer</option>
+          </select>
+        </label>
 
         <div className="form-grid form-grid--columns">
           <label className="form-field">
@@ -95,6 +83,8 @@ function RegisterPage() {
               value={form.email}
               onChange={handleChange}
               placeholder="name@example.com"
+              autoComplete="email"
+              required
             />
           </label>
 
@@ -106,6 +96,8 @@ function RegisterPage() {
               value={form.password}
               onChange={handleChange}
               placeholder="At least 8 characters"
+              autoComplete="new-password"
+              required
             />
           </label>
         </div>
@@ -120,6 +112,7 @@ function RegisterPage() {
                 value={form.companyName}
                 onChange={handleChange}
                 placeholder="Test Company"
+                required
               />
             </label>
 
@@ -145,6 +138,7 @@ function RegisterPage() {
                   value={form.firstName}
                   onChange={handleChange}
                   placeholder="Ivan"
+                  required
                 />
               </label>
 
@@ -156,6 +150,7 @@ function RegisterPage() {
                   value={form.lastName}
                   onChange={handleChange}
                   placeholder="Ivanov"
+                  required
                 />
               </label>
             </div>
@@ -180,6 +175,8 @@ function RegisterPage() {
                   value={form.hourlyRate}
                   onChange={handleChange}
                   placeholder="20"
+                  min="1"
+                  required
                 />
               </label>
             </div>

@@ -4,10 +4,16 @@ const { registerAuctionSocketHandlers } = require('./auctionSocket');
 const { registerChatSocketHandlers } = require('./chatSocket');
 const { buildUserRoomName } = require('../services/notificationService');
 
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
+
 const initializeSocketServer = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: allowedOrigins,
       methods: ['GET', 'POST'],
     },
   });

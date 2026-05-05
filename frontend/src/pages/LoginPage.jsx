@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [form, setForm] = useState({
     email: 'client@test.com',
@@ -23,13 +24,10 @@ function LoginPage() {
     setError('');
 
     try {
-      await login(form);
-      navigate('/');
+      await login(form.email, form.password);
+      navigate(location.state?.from?.pathname || '/', { replace: true });
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message
-        || 'Unable to sign in right now.',
-      );
+      setError(requestError.message || 'Unable to sign in right now.');
     } finally {
       setLoading(false);
     }
@@ -52,6 +50,8 @@ function LoginPage() {
             value={form.email}
             onChange={handleChange}
             placeholder="client@test.com"
+            autoComplete="email"
+            required
           />
         </label>
 
@@ -63,6 +63,8 @@ function LoginPage() {
             value={form.password}
             onChange={handleChange}
             placeholder="12345678"
+            autoComplete="current-password"
+            required
           />
         </label>
 

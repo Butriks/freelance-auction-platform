@@ -5,81 +5,110 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import client from '../api/client.js';
+import * as authApi from '../api/authApi.js';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'auth_token';
-const USER_KEY = 'auth_user';
-
-function getStoredUser() {
-  const raw = localStorage.getItem(USER_KEY);
-
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw);
-  } catch (error) {
-    localStorage.removeItem(USER_KEY);
-    return null;
-  }
-}
+const TOKEN_KEY = 'token';
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
-  const [user, setUser] = useState(() => getStoredUser());
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  }, [token]);
+    let isMounted = true;
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_KEY);
-    }
-  }, [user]);
+    async function loadCurrentUser() {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
 
-  const login = async (credentials) => {
-    const { data } = await client.post('/api/auth/login', credentials);
+      if (!storedToken) {
+        if (isMounted) {
+          setToken('');
+          setUser(null);
+          setIsLoading(false);
+        }
+
+        return;
+      }
+
+      try {
+        const { data } = await authApi.getMe();
+        const currentUser = data.user || data;
+
+        if (isMounted) {
+          setToken(storedToken);
+          setUser(currentUser);
+        }
+      } catch (error) {
+        localStorage.removeItem(TOKEN_KEY);
+
+        if (isMounted) {
+          setToken('');
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const login = async (email, password) => {
+    const payload = typeof email === 'object' ? email : { email, password };
+    const { data } = await authApi.login(payload);
+
+    localStorage.setItem(TOKEN_KEY, data.token);
     setToken(data.token);
     setUser(data.user);
+
     return data;
   };
 
   const register = async (payload) => {
-    const { data } = await client.post('/api/auth/register', payload);
+    const { data } = await authApi.register(payload);
+
+    localStorage.setItem(TOKEN_KEY, data.token);
     setToken(data.token);
     setUser(data.user);
+
     return data;
   };
 
   const logout = () => {
+    localStorage.removeItem(TOKEN_KEY);
     setToken('');
     setUser(null);
+  };
+
+  const refreshUser = async () => {
+    const { data } = await authApi.getMe();
+    const currentUser = data.user || data;
+
+    setUser(currentUser);
+    return currentUser;
   };
 
   const value = useMemo(
     () => ({
       token,
       user,
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(token && user),
+      isLoading,
       login,
       register,
       logout,
-      setAuthData: ({ token: nextToken, user: nextUser }) => {
-        setToken(nextToken || '');
-        setUser(nextUser || null);
-      },
+      refreshUser,
+      loadCurrentUser: refreshUser,
     }),
-    [token, user],
+    [token, user, isLoading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

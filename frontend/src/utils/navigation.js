@@ -1,11 +1,10 @@
 export const navigationItems = [
-  { to: '/', label: 'Dashboard', icon: '◻' },
-  { to: '/tasks', label: 'Tasks', icon: '▣' },
-  { to: '/tasks/create', label: 'Create Task', icon: '+' },
-  { to: '/contracts', label: 'Contracts', icon: '≡' },
-  { to: '/notifications', label: 'Notifications', icon: '●' },
-  { to: '/profile', label: 'Profile', icon: '○' },
-  { to: '/admin/users', label: 'Admin Users', icon: '□' },
-  { to: '/admin/analytics', label: 'Admin Analytics', icon: '△' },
+  { to: '/', label: 'Dashboard', icon: 'D', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/tasks', label: 'Tasks', icon: 'T', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/tasks/create', label: 'Create Task', icon: '+', roles: ['CLIENT'] },
+  { to: '/contracts', label: 'Contracts', icon: 'C', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/notifications', label: 'Notifications', icon: 'N', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/profile', label: 'Profile', icon: 'P', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/admin/users', label: 'Admin Users', icon: 'U', roles: ['ADMIN'] },
+  { to: '/admin/analytics', label: 'Admin Analytics', icon: 'A', roles: ['ADMIN'] },
 ];
-

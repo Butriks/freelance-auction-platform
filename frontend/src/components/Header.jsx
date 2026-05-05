@@ -1,8 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 function Header() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="app-header">
@@ -15,17 +22,12 @@ function Header() {
         <div className="user-menu__info">
           <span className="user-menu__label">Signed in as</span>
           <strong>{user?.email || 'Guest'}</strong>
+          {user?.role ? <span className="role-badge">{user.role}</span> : null}
         </div>
 
-        {isAuthenticated ? (
-          <button className="btn btn-secondary" type="button" onClick={logout}>
-            Logout
-          </button>
-        ) : (
-          <button className="btn btn-secondary" type="button">
-            User Menu
-          </button>
-        )}
+        <button className="btn btn-secondary" type="button" onClick={handleLogout}>
+          Logout
+        </button>
       </div>
     </header>
   );

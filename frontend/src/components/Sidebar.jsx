@@ -1,8 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import { navigationItems } from '../utils/navigation.js';
 
 function Sidebar() {
+  const { user } = useAuth();
+  const items = navigationItems.filter((item) => item.roles.includes(user?.role));
+
   return (
     <aside className="app-sidebar">
       <div className="app-sidebar__brand">
@@ -14,7 +18,7 @@ function Sidebar() {
       </div>
 
       <nav className="app-sidebar__nav" aria-label="Sidebar navigation">
-        {navigationItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
