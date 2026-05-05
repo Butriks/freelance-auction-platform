@@ -13,6 +13,7 @@ const Review = require('./review');
 const Message = require('./message');
 const Notification = require('./notification');
 const Log = require('./log');
+const Dispute = require('./dispute');
 
 const models = {
   User,
@@ -29,6 +30,7 @@ const models = {
   Message,
   Notification,
   Log,
+  Dispute,
 };
 
 Object.values(models).forEach((model) => {

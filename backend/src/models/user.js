@@ -44,6 +44,18 @@ class User extends Model {
       as: 'logs',
       onDelete: 'SET NULL',
     });
+
+    User.hasMany(models.Dispute, {
+      foreignKey: 'openedByUserId',
+      as: 'openedDisputes',
+      onDelete: 'RESTRICT',
+    });
+
+    User.hasMany(models.Dispute, {
+      foreignKey: 'resolvedByAdminId',
+      as: 'resolvedDisputes',
+      onDelete: 'SET NULL',
+    });
   }
 }
 

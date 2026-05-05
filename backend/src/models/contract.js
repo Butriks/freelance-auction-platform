@@ -55,6 +55,12 @@ class Contract extends Model {
       as: 'messages',
       onDelete: 'CASCADE',
     });
+
+    Contract.hasMany(models.Dispute, {
+      foreignKey: 'contractId',
+      as: 'disputes',
+      onDelete: 'CASCADE',
+    });
   }
 }
 
