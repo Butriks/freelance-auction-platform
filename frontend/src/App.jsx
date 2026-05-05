@@ -1,8 +1,12 @@
+import React from "react";
+import { AuthProvider } from './context/AuthContext.jsx';
+import AppRouter from './routes/AppRouter.jsx';
+
 function App() {
   return (
-    <main className="app">
-      <h1>Freelance Auction Platform</h1>
-    </main>
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
 

@@ -1,0 +1,4 @@
+.page-stack > * {
+  min-width: 0;
+}
+
