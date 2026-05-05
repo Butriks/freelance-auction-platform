@@ -30,7 +30,7 @@ const authMiddleware = async (req, res, next) => {
       throw error;
     }
 
-    req.user = user;
+    req.user = user.get ? user.get({ plain: true }) : user;
     next();
   } catch (error) {
     if (

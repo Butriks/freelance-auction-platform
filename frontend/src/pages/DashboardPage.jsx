@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import PageSection from '../components/PageSection.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const stats = [
   { label: 'Open Tasks', value: '18', caption: 'New work opportunities and client requests.' },
@@ -8,13 +10,31 @@ const stats = [
   { label: 'Analytics', value: '84%', caption: 'Healthy delivery trend and response rate.' },
 ];
 
+const ctasByRole = {
+  CLIENT: [
+    { title: 'Create a task', text: 'Post a new project and start receiving bids.', to: '/tasks/create' },
+    { title: 'My tasks', text: 'Review your task board and current statuses.', to: '/tasks' },
+  ],
+  FREELANCER: [
+    { title: 'Browse tasks', text: 'Find open tasks and prepare your next bid.', to: '/tasks' },
+    { title: 'My contracts', text: 'Track active work and milestone delivery.', to: '/contracts' },
+  ],
+  ADMIN: [
+    { title: 'Admin analytics', text: 'Open the marketplace metrics overview.', to: '/admin/analytics' },
+    { title: 'Users management', text: 'Review accounts, roles and access states.', to: '/admin/users' },
+  ],
+};
+
 function DashboardPage() {
+  const { user } = useAuth();
+  const ctas = ctasByRole[user?.role] || [];
+
   return (
     <div className="page-stack">
       <PageSection
         eyebrow="Overview"
         title="A clean operations cockpit for the marketplace"
-        description="This dashboard is intentionally lightweight for now, but the layout is ready for real metrics, filters and live backend data."
+        description="Use the quick actions for your role, then move into tasks, contracts and administration as the workflow grows."
       >
         <div className="stats-grid">
           {stats.map((stat) => (
@@ -28,22 +48,15 @@ function DashboardPage() {
       </PageSection>
 
       <div className="content-grid">
-        <article className="panel">
-          <h3>Recent activity</h3>
-          <ul className="activity-list">
-            <li>New bid received for Landing Page Redesign.</li>
-            <li>Milestone submitted for Mobile App UI contract.</li>
-            <li>Review created after contract completion.</li>
-          </ul>
-        </article>
-
-        <article className="panel">
-          <h3>Quick notes</h3>
-          <p>
-            The layout already supports cards, lists, table surfaces and forms.
-            The next step can be wiring in real dashboard metrics from backend analytics.
-          </p>
-        </article>
+        {ctas.map((item) => (
+          <article key={item.title} className="panel cta-panel">
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+            <Link className="btn btn-primary" to={item.to}>Open</Link>
+          </article>
+        ))}
       </div>
     </div>
   );

@@ -20,6 +20,12 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data?.message || error.message || 'API request failed';
+    const isAuthEndpoint = error.config?.url?.startsWith('/api/auth');
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
 
     return Promise.reject({
       ...error,

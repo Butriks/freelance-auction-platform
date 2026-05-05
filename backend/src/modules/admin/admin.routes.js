@@ -8,15 +8,14 @@ const router = Router();
 router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN'));
 
-router.get('/admin/users', adminController.getUsers);
-router.patch('/admin/users/:id/block', adminController.blockUser);
-router.patch('/admin/users/:id/unblock', adminController.unblockUser);
-router.get('/admin/tasks', adminController.getTasks);
-router.get('/admin/contracts', adminController.getContracts);
-router.get('/admin/disputes', adminController.getDisputes);
-router.patch('/admin/disputes/:id/resolve', adminController.resolveDispute);
-router.get('/admin/logs', adminController.getLogs);
-router.get('/admin/analytics', adminController.getAnalytics);
+router.get('/users', adminController.getUsers);
+router.patch('/users/:id/block', adminController.blockUser);
+router.patch('/users/:id/unblock', adminController.unblockUser);
+router.get('/tasks', adminController.getTasks);
+router.get('/contracts', adminController.getContracts);
+router.get('/disputes', adminController.getDisputes);
+router.patch('/disputes/:id/resolve', adminController.resolveDispute);
+router.get('/logs', adminController.getLogs);
+router.get('/analytics', adminController.getAnalytics);
 
 module.exports = router;
-

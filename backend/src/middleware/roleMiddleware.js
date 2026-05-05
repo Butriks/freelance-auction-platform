@@ -1,13 +1,17 @@
-const roleMiddleware = (...roles) => (req, res, next) => {
+const roleMiddleware = (...roles) => {
   const allowedRoles = roles.flat();
 
-  if (!req.user || !allowedRoles.includes(req.user.role)) {
-    const error = new Error('Access denied');
-    error.statusCode = 403;
-    return next(error);
-  }
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
 
-  return next();
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    return next();
+  };
 };
 
 module.exports = roleMiddleware;

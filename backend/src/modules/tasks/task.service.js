@@ -37,7 +37,7 @@ const findClientProfileByUserId = async (userId) => {
   });
 
   if (!clientProfile) {
-    throw createHttpError(403, 'Client profile is required');
+    throw createHttpError(404, 'Client profile not found');
   }
 
   return clientProfile;

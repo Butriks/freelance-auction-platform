@@ -61,6 +61,19 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setToken('');
+      setUser(null);
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
   const login = async (email, password) => {
     const payload = typeof email === 'object' ? email : { email, password };
     const { data } = await authApi.login(payload);

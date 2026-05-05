@@ -23,7 +23,7 @@ router.use('/api', reviewRoutes);
 router.use('/api', messageRoutes);
 router.use('/api', notificationRoutes);
 router.use('/api', disputeRoutes);
-router.use('/api', adminRoutes);
+router.use('/api/admin', adminRoutes);
 router.use('/api/tasks/:taskId/bids', bidRoutes);
 router.use('/api/tasks', taskRoutes);
 
