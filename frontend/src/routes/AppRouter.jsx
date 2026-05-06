@@ -11,6 +11,7 @@ import TasksPage from '../pages/TasksPage.jsx';
 import TaskDetailsPage from '../pages/TaskDetailsPage.jsx';
 import CreateTaskPage from '../pages/CreateTaskPage.jsx';
 import ContractsPage from '../pages/ContractsPage.jsx';
+import ContractDetailsPage from '../pages/ContractDetailsPage.jsx';
 import NotificationsPage from '../pages/NotificationsPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
 import AdminUsersPage from '../pages/AdminUsersPage.jsx';
@@ -80,6 +81,7 @@ function AppRouter() {
           )}
         />
         <Route path="/contracts" element={<ContractsPage />} />
+        <Route path="/contracts/:id" element={<ContractDetailsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route

@@ -333,9 +333,33 @@
   background: rgba(180, 35, 24, 0.1);
 }
 
+.status-pill--active,
 .status-pill--pending {
   color: var(--color-primary-dark);
   background: rgba(70, 130, 180, 0.12);
+}
+
+.status-pill--submitted,
+.status-pill--held,
+.status-pill--partially_released {
+  color: #175cd3;
+  background: rgba(23, 92, 211, 0.1);
+}
+
+.status-pill--completed,
+.status-pill--approved,
+.status-pill--released,
+.status-pill--mock_success {
+  color: #067647;
+  background: rgba(6, 118, 71, 0.1);
+}
+
+.status-pill--disputed,
+.status-pill--rejected,
+.status-pill--refunded,
+.status-pill--mock_failed {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.1);
 }
 
 .status-pill--accepted {
@@ -586,6 +610,13 @@
   gap: 18px;
 }
 
+.contract-grid,
+.milestone-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .bid-card {
   display: grid;
   gap: 16px;
@@ -596,6 +627,18 @@
   box-shadow: var(--color-shadow-soft);
 }
 
+.contract-card,
+.milestone-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.contract-card__header,
 .bid-card__header,
 .bid-card__footer {
   display: flex;
@@ -605,15 +648,62 @@
   flex-wrap: wrap;
 }
 
+.contract-card__eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--color-primary-dark);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.contract-card h3,
 .bid-card h3 {
   margin-bottom: 6px;
   font-size: 18px;
 }
 
+.contract-hero {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 18px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.contract-hero h3 {
+  margin-top: 14px;
+  font-size: 36px;
+}
+
+.contract-hero p,
 .bid-card p,
 .bid-card__footer span {
   color: var(--color-text-muted);
   line-height: 1.6;
+}
+
+.metric-value {
+  display: block;
+  margin-top: 18px;
+  font-size: 30px;
+}
+
+.details-list--compact dl {
+  gap: 8px;
+}
+
+.milestone-form {
+  max-width: 860px;
+}
+
+.milestone-actions {
+  display: grid;
+  gap: 12px;
+  padding-top: 6px;
 }
 
 .socket-note,
@@ -639,7 +729,10 @@
   .form-grid--columns,
   .filter-card,
   .task-grid,
-  .bid-grid {
+  .bid-grid,
+  .contract-grid,
+  .milestone-grid,
+  .contract-hero {
     grid-template-columns: 1fr;
   }
 

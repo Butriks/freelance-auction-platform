@@ -14,6 +14,7 @@ const ctasByRole = {
   CLIENT: [
     { title: 'Create a task', text: 'Post a new project and start receiving bids.', to: '/tasks/create' },
     { title: 'Review bids on your tasks', text: 'Open your task board and compare freelancer offers.', to: '/tasks' },
+    { title: 'View contracts', text: 'Track accepted bids, escrow and delivery milestones.', to: '/contracts' },
   ],
   FREELANCER: [
     { title: 'Browse open tasks', text: 'Find open tasks and prepare your next bid.', to: '/tasks' },
@@ -22,6 +23,7 @@ const ctasByRole = {
   ADMIN: [
     { title: 'Admin analytics', text: 'Open the marketplace metrics overview.', to: '/admin/analytics' },
     { title: 'Users management', text: 'Review accounts, roles and access states.', to: '/admin/users' },
+    { title: 'All contracts', text: 'Review marketplace contracts from one workspace.', to: '/contracts' },
   ],
 };
 
