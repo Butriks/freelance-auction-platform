@@ -21,9 +21,10 @@ const ctasByRole = {
     { title: 'My contracts', text: 'Track active work and milestone delivery.', to: '/contracts' },
   ],
   ADMIN: [
-    { title: 'Admin analytics', text: 'Open the marketplace metrics overview.', to: '/admin/analytics' },
     { title: 'Users management', text: 'Review accounts, roles and access states.', to: '/admin/users' },
-    { title: 'All contracts', text: 'Review marketplace contracts from one workspace.', to: '/contracts' },
+    { title: 'Analytics', text: 'Open the marketplace metrics overview.', to: '/admin/analytics' },
+    { title: 'Disputes', text: 'Resolve open disputes and review outcomes.', to: '/admin/disputes' },
+    { title: 'Logs', text: 'Audit important user and system actions.', to: '/admin/logs' },
   ],
 };
 

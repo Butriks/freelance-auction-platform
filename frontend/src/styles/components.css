@@ -968,6 +968,68 @@
   background: rgba(6, 118, 71, 0.1);
 }
 
+.admin-filter-card {
+  grid-template-columns: minmax(220px, 1fr) 180px 180px auto;
+}
+
+.admin-analytics-stack {
+  display: grid;
+  gap: 24px;
+}
+
+.admin-analytics-section {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-analytics-section h3 {
+  font-size: 20px;
+}
+
+.admin-stats-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.admin-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-card {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.admin-card p,
+.admin-comment {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.admin-comment {
+  padding: 12px 14px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.metadata-preview {
+  max-width: 320px;
+  max-height: 82px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 12px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -984,7 +1046,10 @@
   .bid-grid,
   .contract-grid,
   .milestone-grid,
-  .contract-hero {
+  .contract-hero,
+  .admin-filter-card,
+  .admin-stats-grid,
+  .admin-card-grid {
     grid-template-columns: 1fr;
   }
 

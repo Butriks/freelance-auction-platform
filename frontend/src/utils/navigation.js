@@ -7,4 +7,6 @@ export const navigationItems = [
   { to: '/profile', label: 'Profile', icon: 'P', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
   { to: '/admin/users', label: 'Admin Users', icon: 'U', roles: ['ADMIN'] },
   { to: '/admin/analytics', label: 'Admin Analytics', icon: 'A', roles: ['ADMIN'] },
+  { to: '/admin/disputes', label: 'Admin Disputes', icon: 'D', roles: ['ADMIN'] },
+  { to: '/admin/logs', label: 'Admin Logs', icon: 'L', roles: ['ADMIN'] },
 ];

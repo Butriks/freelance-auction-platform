@@ -16,6 +16,8 @@ import NotificationsPage from '../pages/NotificationsPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
 import AdminUsersPage from '../pages/AdminUsersPage.jsx';
 import AdminAnalyticsPage from '../pages/AdminAnalyticsPage.jsx';
+import AdminDisputesPage from '../pages/AdminDisputesPage.jsx';
+import AdminLogsPage from '../pages/AdminLogsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 
 function PublicOnlyRoute({ children }) {
@@ -97,6 +99,22 @@ function AppRouter() {
           element={(
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <AdminAnalyticsPage />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/admin/disputes"
+          element={(
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminDisputesPage />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/admin/logs"
+          element={(
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminLogsPage />
             </ProtectedRoute>
           )}
         />
