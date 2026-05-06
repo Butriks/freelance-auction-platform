@@ -1,10 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useNotifications } from '../context/NotificationContext.jsx';
 
 function Header() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   const handleLogout = () => {
     logout();
@@ -19,6 +21,11 @@ function Header() {
       </div>
 
       <div className="user-menu">
+        <Link className="notification-link" to="/notifications">
+          Notifications
+          {unreadCount > 0 ? <span className="notification-badge">{unreadCount}</span> : null}
+        </Link>
+
         <div className="user-menu__info">
           <span className="user-menu__label">Signed in as</span>
           <strong>{user?.email || 'Guest'}</strong>

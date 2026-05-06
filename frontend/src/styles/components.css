@@ -100,6 +100,37 @@
   font-weight: 800;
 }
 
+.notification-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--color-primary-dark);
+  background: rgba(70, 130, 180, 0.1);
+  border: 1px solid rgba(70, 130, 180, 0.18);
+  border-radius: 14px;
+  font-weight: 800;
+}
+
+.notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  color: #ffffff;
+  background: var(--color-primary-dark);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.notification-badge--nav {
+  margin-left: auto;
+}
+
 .auth-card,
 .panel,
 .table-card,
@@ -853,6 +884,90 @@
   font-weight: 700;
 }
 
+.notification-summary {
+  max-width: 320px;
+}
+
+.notification-filter-card {
+  grid-template-columns: minmax(280px, 420px) minmax(220px, 280px);
+  align-items: end;
+}
+
+.notification-list {
+  display: grid;
+  gap: 14px;
+}
+
+.notification-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.notification-card--unread {
+  background: rgba(70, 130, 180, 0.08);
+  border-color: rgba(70, 130, 180, 0.22);
+}
+
+.notification-card__content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.notification-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notification-card h3 {
+  font-size: 18px;
+}
+
+.notification-card p,
+.notification-card time {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.notification-card time {
+  font-size: 12px;
+}
+
+.type-badge,
+.read-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.type-badge {
+  color: var(--color-primary-dark);
+  background: rgba(70, 130, 180, 0.12);
+}
+
+.read-badge {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.1);
+}
+
+.read-badge--read {
+  color: #067647;
+  background: rgba(6, 118, 71, 0.1);
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -881,11 +996,17 @@
   }
 
   .chat-form,
-  .review-grid {
+  .review-grid,
+  .notification-filter-card {
     grid-template-columns: 1fr;
   }
 
   .message-bubble {
     max-width: 100%;
+  }
+
+  .notification-card {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

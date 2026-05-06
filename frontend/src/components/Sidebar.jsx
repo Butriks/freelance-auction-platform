@@ -1,10 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useNotifications } from '../context/NotificationContext.jsx';
 import { navigationItems } from '../utils/navigation.js';
 
 function Sidebar() {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const items = navigationItems.filter((item) => item.roles.includes(user?.role));
 
   return (
@@ -26,6 +28,9 @@ function Sidebar() {
           >
             <span className="nav-link__icon">{item.icon}</span>
             <span>{item.label}</span>
+            {item.to === '/notifications' && unreadCount > 0 ? (
+              <span className="notification-badge notification-badge--nav">{unreadCount}</span>
+            ) : null}
           </NavLink>
         ))}
       </nav>
