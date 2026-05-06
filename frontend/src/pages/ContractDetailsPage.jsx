@@ -7,6 +7,8 @@ import {
   rejectMilestone,
   submitMilestone,
 } from '../api/milestoneApi.js';
+import ContractChat from '../components/ContractChat.jsx';
+import ContractReviews from '../components/ContractReviews.jsx';
 import PageSection from '../components/PageSection.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -398,6 +400,9 @@ function ContractDetailsPage() {
           </div>
         )}
       </PageSection>
+
+      <ContractChat contractId={contract.id} />
+      <ContractReviews contract={contract} />
     </div>
   );
 }

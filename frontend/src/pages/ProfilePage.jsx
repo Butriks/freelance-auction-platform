@@ -14,9 +14,16 @@ function ProfilePage() {
       <div className="detail-grid">
         <article className="panel">
           <h3>Current user</h3>
-          <p>Email: {user?.email || 'guest@example.com'}</p>
-          <p>Role: {user?.role || 'Guest'}</p>
-          <p>Status: {user?.status || 'N/A'}</p>
+          <div className="profile-list">
+            <span>Email</span>
+            <strong>{user?.email || 'guest@example.com'}</strong>
+            <span>Role</span>
+            <strong>{user?.role || 'Guest'}</strong>
+            <span>Status</span>
+            <strong>{user?.status || 'N/A'}</strong>
+            <span>Rating</span>
+            <strong>{user?.rating ? Number(user.rating).toFixed(2) : 'Available after reviews'}</strong>
+          </div>
         </article>
         <article className="panel">
           <h3>Next step</h3>
