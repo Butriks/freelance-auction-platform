@@ -13,10 +13,10 @@ const stats = [
 const ctasByRole = {
   CLIENT: [
     { title: 'Create a task', text: 'Post a new project and start receiving bids.', to: '/tasks/create' },
-    { title: 'My tasks', text: 'Review your task board and current statuses.', to: '/tasks' },
+    { title: 'Review bids on your tasks', text: 'Open your task board and compare freelancer offers.', to: '/tasks' },
   ],
   FREELANCER: [
-    { title: 'Browse tasks', text: 'Find open tasks and prepare your next bid.', to: '/tasks' },
+    { title: 'Browse open tasks', text: 'Find open tasks and prepare your next bid.', to: '/tasks' },
     { title: 'My contracts', text: 'Track active work and milestone delivery.', to: '/contracts' },
   ],
   ADMIN: [
