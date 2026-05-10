@@ -387,6 +387,7 @@
 
 .status-pill--disputed,
 .status-pill--rejected,
+.status-pill--resolved,
 .status-pill--refunded,
 .status-pill--mock_failed {
   color: #b42318;
@@ -731,6 +732,17 @@
   max-width: 860px;
 }
 
+.dispute-form {
+  max-width: 860px;
+}
+
+.dispute-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .milestone-actions {
   display: grid;
   gap: 12px;
@@ -1055,6 +1067,7 @@
 
   .task-actions-panel,
   .cta-panel,
+  .dispute-panel,
   .pagination-bar {
     align-items: stretch;
     flex-direction: column;

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getContractById } from '../api/contractApi.js';
+import { createDispute } from '../api/disputeApi.js';
 import {
   approveMilestone,
   createMilestone,
@@ -17,6 +18,10 @@ const initialMilestoneForm = {
   description: '',
   amount: '',
   dueDate: '',
+};
+
+const initialDisputeForm = {
+  reason: '',
 };
 
 function formatMoney(value) {
@@ -44,9 +49,12 @@ function ContractDetailsPage() {
   const { user } = useAuth();
   const [contract, setContract] = useState(null);
   const [milestoneForm, setMilestoneForm] = useState(initialMilestoneForm);
+  const [disputeForm, setDisputeForm] = useState(initialDisputeForm);
+  const [isDisputeFormOpen, setIsDisputeFormOpen] = useState(false);
   const [rejectReasonById, setRejectReasonById] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isOpeningDispute, setIsOpeningDispute] = useState(false);
   const [actingMilestoneId, setActingMilestoneId] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -54,6 +62,7 @@ function ContractDetailsPage() {
   const isClient = user?.role === 'CLIENT';
   const isFreelancer = user?.role === 'FREELANCER';
   const isActive = contract?.status === 'ACTIVE';
+  const canUseDisputeUi = ['CLIENT', 'FREELANCER'].includes(user?.role);
 
   const loadContract = useCallback(async () => {
     const { data } = await getContractById(id);
@@ -150,6 +159,41 @@ function ContractDetailsPage() {
       () => rejectMilestone(milestoneId, { reason: reason.trim() }),
       'Milestone rejected.',
     );
+  };
+
+  const handleOpenDispute = async (event) => {
+    event.preventDefault();
+    setMessage('');
+
+    const reason = disputeForm.reason.trim();
+
+    if (reason.length < 10) {
+      setMessage('Dispute reason must be at least 10 characters.');
+      return;
+    }
+
+    if (reason.length > 3000) {
+      setMessage('Dispute reason must be 3000 characters or less.');
+      return;
+    }
+
+    setIsOpeningDispute(true);
+
+    try {
+      await createDispute(contract.id, { reason });
+      setDisputeForm(initialDisputeForm);
+      setIsDisputeFormOpen(false);
+      await loadContract();
+      setMessage('Dispute opened. Admins have been notified.');
+    } catch (requestError) {
+      setMessage(
+        requestError.response?.status === 409
+          ? 'There is already an open dispute for this contract.'
+          : requestError.message || 'Unable to open dispute.',
+      );
+    } finally {
+      setIsOpeningDispute(false);
+    }
   };
 
   if (isLoading) {
@@ -296,6 +340,59 @@ function ContractDetailsPage() {
           </div>
         )}
       </PageSection>
+
+      {canUseDisputeUi ? (
+        <PageSection
+          eyebrow="Dispute"
+          title="Contract dispute"
+          description="Request admin review when contract delivery needs intervention."
+        >
+          {contract.status === 'DISPUTED' ? (
+            <div className="state-card">
+              <strong>This contract is currently disputed.</strong>
+              <p>Admin review is in progress. You can track your dispute from My Disputes.</p>
+              <Link className="btn btn-secondary" to="/disputes/my">Open My Disputes</Link>
+            </div>
+          ) : null}
+
+          {contract.status === 'COMPLETED' ? (
+            <div className="state-card">
+              <strong>Dispute creation is closed for completed contracts.</strong>
+            </div>
+          ) : null}
+
+          {contract.status === 'ACTIVE' ? (
+            <div className="panel dispute-panel">
+              <div>
+                <h3>Need admin review?</h3>
+                <p>Open a dispute if the work result or contract process no longer matches expectations.</p>
+              </div>
+              <button className="btn btn-secondary" type="button" onClick={() => setIsDisputeFormOpen((current) => !current)}>
+                {isDisputeFormOpen ? 'Cancel' : 'Open dispute'}
+              </button>
+            </div>
+          ) : null}
+
+          {contract.status === 'ACTIVE' && isDisputeFormOpen ? (
+            <form className="form-grid form-card dispute-form" onSubmit={handleOpenDispute}>
+              <label className="form-field">
+                <span>Reason</span>
+                <textarea
+                  rows="5"
+                  maxLength="3000"
+                  value={disputeForm.reason}
+                  onChange={(event) => setDisputeForm({ reason: event.target.value })}
+                  placeholder="The work result does not match the agreed requirements."
+                  required
+                />
+              </label>
+              <button className="btn btn-primary" type="submit" disabled={isOpeningDispute}>
+                {isOpeningDispute ? 'Opening...' : 'Submit dispute'}
+              </button>
+            </form>
+          ) : null}
+        </PageSection>
+      ) : null}
 
       <PageSection eyebrow="Milestones" title="Delivery milestones">
         {message ? <p className="form-success">{message}</p> : null}

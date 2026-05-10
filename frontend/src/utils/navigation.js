@@ -3,6 +3,7 @@ export const navigationItems = [
   { to: '/tasks', label: 'Tasks', icon: 'T', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
   { to: '/tasks/create', label: 'Create Task', icon: '+', roles: ['CLIENT'] },
   { to: '/contracts', label: 'Contracts', icon: 'C', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
+  { to: '/disputes/my', label: 'My Disputes', icon: 'M', roles: ['CLIENT', 'FREELANCER'] },
   { to: '/notifications', label: 'Notifications', icon: 'N', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
   { to: '/profile', label: 'Profile', icon: 'P', roles: ['CLIENT', 'FREELANCER', 'ADMIN'] },
   { to: '/admin/users', label: 'Admin Users', icon: 'U', roles: ['ADMIN'] },

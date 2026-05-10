@@ -15,10 +15,12 @@ const ctasByRole = {
     { title: 'Create a task', text: 'Post a new project and start receiving bids.', to: '/tasks/create' },
     { title: 'Review bids on your tasks', text: 'Open your task board and compare freelancer offers.', to: '/tasks' },
     { title: 'View contracts', text: 'Track accepted bids, escrow and delivery milestones.', to: '/contracts' },
+    { title: 'My disputes', text: 'Review disputes opened on your contracts.', to: '/disputes/my' },
   ],
   FREELANCER: [
     { title: 'Browse open tasks', text: 'Find open tasks and prepare your next bid.', to: '/tasks' },
     { title: 'My contracts', text: 'Track active work and milestone delivery.', to: '/contracts' },
+    { title: 'My disputes', text: 'Track dispute status for your contract work.', to: '/disputes/my' },
   ],
   ADMIN: [
     { title: 'Users management', text: 'Review accounts, roles and access states.', to: '/admin/users' },
