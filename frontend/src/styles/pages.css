@@ -2,3 +2,19 @@
   min-width: 0;
 }
 
+.page-stack {
+  width: 100%;
+}
+
+.page-stack > section,
+.page-stack > div,
+.page-section,
+.page-section__header,
+.detail-grid,
+.content-grid {
+  min-width: 0;
+}
+
+.page-section__header > div {
+  min-width: 0;
+}

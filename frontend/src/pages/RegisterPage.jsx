@@ -111,7 +111,7 @@ function RegisterPage() {
                 type="text"
                 value={form.companyName}
                 onChange={handleChange}
-                placeholder="Test Company"
+                placeholder="Acme Studio"
                 required
               />
             </label>

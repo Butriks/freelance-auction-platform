@@ -7,8 +7,8 @@ function LoginPage() {
   const location = useLocation();
   const { login } = useAuth();
   const [form, setForm] = useState({
-    email: 'client@test.com',
-    password: '12345678',
+    email: '',
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,7 +49,7 @@ function LoginPage() {
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="client@test.com"
+            placeholder="name@example.com"
             autoComplete="email"
             required
           />
@@ -62,7 +62,7 @@ function LoginPage() {
             type="password"
             value={form.password}
             onChange={handleChange}
-            placeholder="12345678"
+            placeholder="Enter your password"
             autoComplete="current-password"
             required
           />

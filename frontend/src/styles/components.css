@@ -1163,6 +1163,352 @@
   font-size: 12px;
 }
 
+/* Final UI polish layer: shared aliases and consistent component treatment. */
+.page {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.page-header,
+.card-header,
+.toolbar,
+.filter-bar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.page-title,
+.card-title {
+  color: var(--color-text);
+  line-height: 1.12;
+}
+
+.page-title {
+  font-size: var(--font-size-2xl);
+}
+
+.page-subtitle {
+  max-width: 760px;
+  margin-top: var(--space-sm);
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.card,
+.section {
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.form,
+.form-group {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: 46px;
+  padding: 13px 15px;
+  color: var(--color-text);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  background: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(70, 130, 180, 0.12);
+}
+
+.button,
+.button-primary,
+.button-secondary,
+.button-danger,
+.button-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.button-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: var(--color-shadow);
+}
+
+.button-secondary {
+  color: var(--color-text);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.button-danger {
+  color: var(--color-danger);
+  background: #ffffff;
+  border: 1px solid rgba(180, 35, 24, 0.24);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.button-ghost {
+  color: var(--color-primary-dark);
+  background: transparent;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--color-primary-dark);
+  background: var(--color-accent-bg);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.error-state,
+.success-message {
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.error-state {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(180, 35, 24, 0.18);
+}
+
+.success-message {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border: 1px solid rgba(6, 118, 71, 0.18);
+}
+
+.btn {
+  border: 1px solid transparent;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 18px 34px rgba(0, 0, 205, 0.18);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(70, 130, 180, 0.42);
+}
+
+.btn-ghost {
+  color: var(--color-primary-dark);
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  background: rgba(70, 130, 180, 0.1);
+}
+
+.auth-card,
+.panel,
+.table-card,
+.list-card,
+.form-card,
+.stat-card,
+.filter-card,
+.state-card,
+.task-card,
+.bid-card,
+.contract-card,
+.milestone-card,
+.chat-card,
+.reviews-card,
+.review-card,
+.notification-card,
+.admin-card,
+.dashboard-hero {
+  border-color: var(--color-border);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.task-card,
+.bid-card,
+.contract-card,
+.milestone-card,
+.review-card,
+.notification-card,
+.admin-card,
+.dashboard-list-row {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.task-card:hover,
+.bid-card:hover,
+.contract-card:hover,
+.milestone-card:hover,
+.review-card:hover,
+.notification-card:hover,
+.admin-card:hover,
+.dashboard-list-row:hover {
+  border-color: rgba(70, 130, 180, 0.28);
+  box-shadow: var(--color-shadow);
+  transform: translateY(-2px);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  min-height: 46px;
+  padding: 13px 15px;
+}
+
+.form-field select {
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 20px,
+    calc(100% - 13px) 20px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+}
+
+.form-error {
+  padding: 12px 14px;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(180, 35, 24, 0.18);
+  border-radius: 14px;
+}
+
+.form-success {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: rgba(6, 118, 71, 0.18);
+}
+
+.data-table {
+  min-width: 760px;
+}
+
+.data-table th {
+  background: var(--color-bg-soft);
+}
+
+.data-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(70, 130, 180, 0.06);
+}
+
+.metadata-preview {
+  max-width: 280px;
+  word-break: break-word;
+}
+
+.status-pill {
+  justify-content: center;
+  width: fit-content;
+  font-weight: 800;
+}
+
+.status-pill--open,
+.status-pill--active,
+.status-pill--pending,
+.status-pill--held {
+  color: var(--color-primary-dark);
+  background: var(--color-accent-bg);
+}
+
+.status-pill--in_progress,
+.status-pill--submitted,
+.status-pill--partially_released {
+  color: var(--color-info);
+  background: var(--color-info-bg);
+}
+
+.status-pill--completed,
+.status-pill--approved,
+.status-pill--released,
+.status-pill--mock_success,
+.status-pill--accepted,
+.status-pill--resolved {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.status-pill--cancelled,
+.status-pill--rejected,
+.status-pill--refunded,
+.status-pill--mock_failed,
+.status-pill--disputed,
+.status-pill--blocked {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.state-card {
+  min-width: 0;
+}
+
+.state-card--error {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.state-card--error strong {
+  color: var(--color-danger);
+}
+
+.notification-card--unread {
+  box-shadow: var(--color-shadow);
+}
+
+.message-list,
+.table-card,
+.app-sidebar {
+  scrollbar-color: rgba(70, 130, 180, 0.38) transparent;
+  scrollbar-width: thin;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1185,14 +1531,20 @@
   .admin-card-grid,
   .dashboard-actions-grid,
   .dashboard-stats-grid,
-  .dashboard-section-grid {
+  .dashboard-section-grid,
+  .card-grid {
     grid-template-columns: 1fr;
   }
 
   .task-actions-panel,
   .cta-panel,
   .dispute-panel,
-  .pagination-bar {
+  .pagination-bar,
+  .user-menu,
+  .page-header,
+  .card-header,
+  .toolbar,
+  .filter-bar {
     align-items: stretch;
     flex-direction: column;
   }
@@ -1215,5 +1567,56 @@
   .notification-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .notification-link,
+  .user-menu .btn,
+  .dashboard-action-card .btn {
+    width: 100%;
+  }
+
+  .message-bubble--mine {
+    justify-self: stretch;
+  }
+
+  .data-table {
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 520px) {
+  .auth-card,
+  .panel,
+  .table-card,
+  .list-card,
+  .form-card,
+  .stat-card,
+  .filter-card,
+  .state-card,
+  .task-card,
+  .bid-card,
+  .contract-card,
+  .milestone-card,
+  .chat-card,
+  .reviews-card,
+  .review-card,
+  .notification-card,
+  .admin-card,
+  .dashboard-hero {
+    border-radius: var(--radius-md);
+    padding: 18px;
+  }
+
+  .task-card__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .btn,
+  .button,
+  .button-primary,
+  .button-secondary,
+  .button-danger,
+  .button-ghost {
+    width: 100%;
   }
 }

@@ -123,7 +123,7 @@ function AdminUsersPage() {
       <form className="filter-card admin-filter-card" onSubmit={applyFilters}>
         <label className="form-field">
           <span>Email search</span>
-          <input name="search" value={filters.search} onChange={handleChange} placeholder="client@test.com" />
+          <input name="search" value={filters.search} onChange={handleChange} placeholder="Search by email" />
         </label>
         <label className="form-field">
           <span>Role</span>
