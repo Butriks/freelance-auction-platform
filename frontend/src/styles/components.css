@@ -370,6 +370,11 @@
   background: rgba(70, 130, 180, 0.12);
 }
 
+.status-pill--blocked {
+  color: #b42318;
+  background: rgba(180, 35, 24, 0.1);
+}
+
 .status-pill--submitted,
 .status-pill--held,
 .status-pill--partially_released {
@@ -1031,6 +1036,122 @@
   border-radius: 14px;
 }
 
+.dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--color-shadow-soft);
+}
+
+.dashboard-hero h2 {
+  margin-top: 8px;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.dashboard-hero p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.dashboard-hero__badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashboard-actions-grid,
+.dashboard-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dashboard-actions-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-action-card {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.dashboard-action-card .btn {
+  width: fit-content;
+}
+
+.dashboard-stats-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-stat-card .stat-card__value {
+  font-size: 34px;
+}
+
+.dashboard-section {
+  display: grid;
+  gap: 16px;
+}
+
+.dashboard-section > div:first-child p {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.dashboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-list-row {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  color: var(--color-text);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-list-row:hover {
+  background: rgba(70, 130, 180, 0.1);
+  transform: translateY(-1px);
+}
+
+.dashboard-list-row span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.dashboard-inline-state {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 14px;
+  color: var(--color-text-muted);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.dashboard-inline-state--error {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.24);
+}
+
+.dashboard-inline-state .loading-state__spinner {
+  width: 24px;
+  height: 24px;
+}
+
 .metadata-preview {
   max-width: 320px;
   max-height: 82px;
@@ -1061,7 +1182,10 @@
   .contract-hero,
   .admin-filter-card,
   .admin-stats-grid,
-  .admin-card-grid {
+  .admin-card-grid,
+  .dashboard-actions-grid,
+  .dashboard-stats-grid,
+  .dashboard-section-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1069,6 +1193,11 @@
   .cta-panel,
   .dispute-panel,
   .pagination-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-hero {
     align-items: stretch;
     flex-direction: column;
   }
