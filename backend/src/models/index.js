@@ -14,6 +14,8 @@ const Message = require('./message');
 const Notification = require('./notification');
 const Log = require('./log');
 const Dispute = require('./dispute');
+const Wallet = require('./wallet');
+const WalletTransaction = require('./walletTransaction');
 
 const models = {
   User,
@@ -31,6 +33,8 @@ const models = {
   Notification,
   Log,
   Dispute,
+  Wallet,
+  WalletTransaction,
 };
 
 Object.values(models).forEach((model) => {

@@ -1,20 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getMyDisputes } from '../api/disputeApi.js';
 import PageSection from '../components/PageSection.jsx';
 
 const limit = 20;
 const statuses = ['OPEN', 'RESOLVED', 'REJECTED'];
 
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : 'N/A';
+function formatDate(value, fallback) {
+  return value ? new Date(value).toLocaleDateString() : fallback;
 }
 
-function getContractTitle(dispute) {
-  return dispute.contract?.task?.title || `Contract #${dispute.contractId}`;
+function getContractTitle(dispute, t) {
+  return dispute.contract?.task?.title || t('contracts.contract', { id: dispute.contractId });
 }
 
 function UserDisputesPage() {
+  const { t } = useTranslation();
   const [disputes, setDisputes] = useState([]);
   const [status, setStatus] = useState('');
   const [offset, setOffset] = useState(0);
@@ -46,7 +48,7 @@ function UserDisputesPage() {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load disputes.');
+          setError(requestError.message || t('common.couldNotLoad'));
           setDisputes([]);
           setCount(0);
         }
@@ -62,21 +64,21 @@ function UserDisputesPage() {
     return () => {
       isMounted = false;
     };
-  }, [params]);
+  }, [params, t]);
 
   return (
     <PageSection
-      eyebrow="Disputes"
-      title="My disputes"
-      description="Track disputes opened on your contracts and follow admin resolution status."
+      eyebrow={t('disputes.eyebrow')}
+      title={t('disputes.title')}
+      description={t('disputes.description')}
     >
       <div className="filter-card filter-card--compact">
         <label className="form-field">
-          <span>Status</span>
+          <span>{t('common.status')}</span>
           <select value={status} onChange={(event) => { setStatus(event.target.value); setOffset(0); }}>
-            <option value="">ALL</option>
+            <option value="">{t('disputes.all')}</option>
             {statuses.map((item) => (
-              <option key={item} value={item}>{item}</option>
+              <option key={item} value={item}>{t(`status.${item}`)}</option>
             ))}
           </select>
         </label>
@@ -85,7 +87,7 @@ function UserDisputesPage() {
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading disputes</strong>
+          <strong>{t('disputes.loading')}</strong>
         </div>
       ) : null}
 
@@ -93,8 +95,8 @@ function UserDisputesPage() {
 
       {!isLoading && !error && disputes.length === 0 ? (
         <div className="state-card">
-          <strong>No disputes found</strong>
-          <p>If a contract needs admin review, you can open a dispute from contract details.</p>
+          <strong>{t('disputes.empty')}</strong>
+          <p>{t('disputes.emptyText')}</p>
         </div>
       ) : null}
 
@@ -105,35 +107,35 @@ function UserDisputesPage() {
               <article key={dispute.id} className="admin-card">
                 <div className="bid-card__header">
                   <div>
-                    <span className="contract-card__eyebrow">Dispute #{dispute.id}</span>
-                    <h3>{getContractTitle(dispute)}</h3>
+                    <span className="contract-card__eyebrow">{t('disputes.eyebrow')} #{dispute.id}</span>
+                    <h3>{getContractTitle(dispute, t)}</h3>
                   </div>
-                  <span className={`status-pill status-pill--${dispute.status?.toLowerCase()}`}>{dispute.status}</span>
+                  <span className={`status-pill status-pill--${dispute.status?.toLowerCase()}`}>{t(`status.${dispute.status}`)}</span>
                 </div>
 
                 <p>{dispute.reason}</p>
 
                 <div className="details-list details-list--compact">
                   <dl>
-                    <div><dt>Contract</dt><dd>#{dispute.contractId}</dd></div>
-                    <div><dt>Created</dt><dd>{formatDate(dispute.createdAt)}</dd></div>
-                    <div><dt>Resolved</dt><dd>{formatDate(dispute.resolvedAt)}</dd></div>
+                    <div><dt>{t('navigation.contracts')}</dt><dd>#{dispute.contractId}</dd></div>
+                    <div><dt>{t('common.created')}</dt><dd>{formatDate(dispute.createdAt, t('common.notAvailable'))}</dd></div>
+                    <div><dt>{t('disputes.resolved')}</dt><dd>{formatDate(dispute.resolvedAt, t('common.notAvailable'))}</dd></div>
                   </dl>
                 </div>
 
                 {dispute.adminComment ? <p className="admin-comment">{dispute.adminComment}</p> : null}
 
                 <Link className="btn btn-secondary" to={`/contracts/${dispute.contractId}`}>
-                  View contract
+                  {t('disputes.viewContract')}
                 </Link>
               </article>
             ))}
           </div>
 
           <div className="pagination-bar">
-            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>Previous</button>
-            <span>{count} disputes</span>
-            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>Next</button>
+            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>{t('common.previous')}</button>
+            <span>{count} {t('navigation.myDisputes').toLowerCase()}</span>
+            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>{t('common.next')}</button>
           </div>
         </>
       ) : null}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const initialForm = {
@@ -16,6 +17,7 @@ const initialForm = {
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { register } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ function RegisterPage() {
       await register(payload);
       navigate('/', { replace: true });
     } catch (requestError) {
-      setError(requestError.message || 'Unable to create account right now.');
+      setError(requestError.message || t('auth.unableToRegister'));
     } finally {
       setLoading(false);
     }
@@ -60,42 +62,42 @@ function RegisterPage() {
   return (
     <div className="auth-card auth-card--wide">
       <div className="auth-card__header">
-        <p className="auth-card__eyebrow">Create account</p>
-        <h2>Start with a polished profile</h2>
-        <p>Choose your role now. Role-based navigation and access can be tightened later.</p>
+        <p className="auth-card__eyebrow">{t('auth.createAccount')}</p>
+        <h2>{t('auth.registerTitle')}</h2>
+        <p>{t('auth.registerDescription')}</p>
       </div>
 
       <form className="form-grid" onSubmit={handleSubmit}>
         <label className="form-field">
-          <span>Role</span>
+          <span>{t('common.role')}</span>
           <select name="role" value={form.role} onChange={handleChange}>
-            <option value="CLIENT">Client</option>
-            <option value="FREELANCER">Freelancer</option>
+            <option value="CLIENT">{t('auth.client')}</option>
+            <option value="FREELANCER">{t('auth.freelancer')}</option>
           </select>
         </label>
 
         <div className="form-grid form-grid--columns">
           <label className="form-field">
-            <span>Email</span>
+            <span>{t('common.email')}</span>
             <input
               name="email"
               type="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="name@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               autoComplete="email"
               required
             />
           </label>
 
           <label className="form-field">
-            <span>Password</span>
+            <span>{t('common.password')}</span>
             <input
               name="password"
               type="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="At least 8 characters"
+              placeholder={t('auth.newPasswordPlaceholder')}
               autoComplete="new-password"
               required
             />
@@ -105,25 +107,25 @@ function RegisterPage() {
         {form.role === 'CLIENT' ? (
           <div className="form-grid form-grid--columns">
             <label className="form-field">
-              <span>Company name</span>
+              <span>{t('auth.companyName')}</span>
               <input
                 name="companyName"
                 type="text"
                 value={form.companyName}
                 onChange={handleChange}
-                placeholder="Acme Studio"
+                placeholder={t('auth.companyPlaceholder')}
                 required
               />
             </label>
 
             <label className="form-field">
-              <span>Description</span>
+              <span>{t('common.description')}</span>
               <input
                 name="description"
                 type="text"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="What kind of work do you post?"
+                placeholder={t('auth.clientDescriptionPlaceholder')}
               />
             </label>
           </div>
@@ -131,7 +133,7 @@ function RegisterPage() {
           <>
             <div className="form-grid form-grid--columns">
               <label className="form-field">
-                <span>First name</span>
+                <span>{t('auth.firstName')}</span>
                 <input
                   name="firstName"
                   type="text"
@@ -143,7 +145,7 @@ function RegisterPage() {
               </label>
 
               <label className="form-field">
-                <span>Last name</span>
+                <span>{t('auth.lastName')}</span>
                 <input
                   name="lastName"
                   type="text"
@@ -157,7 +159,7 @@ function RegisterPage() {
 
             <div className="form-grid form-grid--columns">
               <label className="form-field">
-                <span>Bio</span>
+                <span>{t('auth.bio')}</span>
                 <input
                   name="bio"
                   type="text"
@@ -168,7 +170,7 @@ function RegisterPage() {
               </label>
 
               <label className="form-field">
-                <span>Hourly rate</span>
+                <span>{t('auth.hourlyRate')}</span>
                 <input
                   name="hourlyRate"
                   type="number"
@@ -186,12 +188,12 @@ function RegisterPage() {
         {error ? <p className="form-error">{error}</p> : null}
 
         <button className="btn btn-primary btn-block" type="submit" disabled={loading}>
-          {loading ? 'Creating account...' : 'Create account'}
+          {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
         </button>
       </form>
 
       <p className="auth-card__footer">
-        Already have an account? <Link to="/login">Sign in</Link>
+        {t('auth.alreadyHaveAccount')} <Link to="/login">{t('auth.signIn')}</Link>
       </p>
     </div>
   );

@@ -5,6 +5,7 @@ const {
   User,
   ClientProfile,
   FreelancerProfile,
+  Wallet,
 } = require('../../models');
 const { createLog } = require('../../services/logService');
 
@@ -84,6 +85,15 @@ const register = async (data) => {
           { transaction },
         );
       }
+
+      await Wallet.create(
+        {
+          userId: user.id,
+          balance: '0.00',
+          currency: 'USD',
+        },
+        { transaction },
+      );
 
       return buildAuthResponse(user);
     });

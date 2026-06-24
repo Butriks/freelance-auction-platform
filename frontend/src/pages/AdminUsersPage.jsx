@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   blockUser,
   getAdminUsers,
@@ -11,23 +12,24 @@ const limit = 20;
 const roles = ['CLIENT', 'FREELANCER', 'ADMIN'];
 const statuses = ['ACTIVE', 'BLOCKED'];
 
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : 'N/A';
+function formatDate(value, fallback) {
+  return value ? new Date(value).toLocaleDateString() : fallback;
 }
 
-function getProfileInfo(user) {
+function getProfileInfo(user, t) {
   if (user.clientProfile) {
-    return user.clientProfile.companyName || 'Client profile';
+    return user.clientProfile.companyName || t('auth.client');
   }
 
   if (user.freelancerProfile) {
-    return `${user.freelancerProfile.firstName || ''} ${user.freelancerProfile.lastName || ''}`.trim() || 'Freelancer profile';
+    return `${user.freelancerProfile.firstName || ''} ${user.freelancerProfile.lastName || ''}`.trim() || t('auth.freelancer');
   }
 
-  return 'No profile';
+  return t('profile.noProfile');
 }
 
 function AdminUsersPage() {
+  const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [count, setCount] = useState(0);
@@ -58,7 +60,7 @@ function AdminUsersPage() {
       setUsers(data.users || []);
       setCount(data.count || 0);
     } catch (requestError) {
-      setError(requestError.message || 'Unable to load users.');
+      setError(requestError.message || t('common.couldNotLoad'));
       setUsers([]);
       setCount(0);
     } finally {
@@ -68,7 +70,7 @@ function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [params]);
+  }, [params, t]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -91,7 +93,7 @@ function AdminUsersPage() {
   const updateUserStatus = async (targetUser, action) => {
     const actionLabel = action === 'block' ? 'block' : 'unblock';
 
-    if (!window.confirm(`Are you sure you want to ${actionLabel} ${targetUser.email}?`)) {
+    if (!window.confirm(`${actionLabel} ${targetUser.email}?`)) {
       return;
     }
 
@@ -106,9 +108,9 @@ function AdminUsersPage() {
       }
 
       await loadUsers();
-      setMessage(`User ${actionLabel}ed successfully.`);
+      setMessage(`${targetUser.email}: ${actionLabel}`);
     } catch (requestError) {
-      setMessage(requestError.message || `Unable to ${actionLabel} user.`);
+      setMessage(requestError.message || t('common.error'));
     } finally {
       setActingUserId(null);
     }
@@ -116,32 +118,32 @@ function AdminUsersPage() {
 
   return (
     <PageSection
-      eyebrow="Admin"
-      title="User management"
-      description="Search users, review profiles and manage blocked or active account states."
+      eyebrow={t('admin.eyebrow')}
+      title={t('admin.usersTitle')}
+      description={t('admin.usersDescription')}
     >
       <form className="filter-card admin-filter-card" onSubmit={applyFilters}>
         <label className="form-field">
-          <span>Email search</span>
-          <input name="search" value={filters.search} onChange={handleChange} placeholder="Search by email" />
+          <span>{t('admin.emailSearch')}</span>
+          <input name="search" value={filters.search} onChange={handleChange} placeholder={t('admin.searchByEmail')} />
         </label>
         <label className="form-field">
-          <span>Role</span>
+          <span>{t('common.role')}</span>
           <select name="role" value={filters.role} onChange={handleChange}>
-            <option value="">ALL</option>
+            <option value="">{t('admin.allRoles')}</option>
             {roles.map((role) => <option key={role} value={role}>{role}</option>)}
           </select>
         </label>
         <label className="form-field">
-          <span>Status</span>
+          <span>{t('common.status')}</span>
           <select name="status" value={filters.status} onChange={handleChange}>
-            <option value="">ALL</option>
-            {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+            <option value="">{t('admin.allStatuses')}</option>
+            {statuses.map((status) => <option key={status} value={status}>{t(`status.${status}`)}</option>)}
           </select>
         </label>
         <div className="filter-card__actions">
-          <button className="btn btn-primary" type="submit">Apply</button>
-          <button className="btn btn-secondary" type="button" onClick={resetFilters}>Reset</button>
+          <button className="btn btn-primary" type="submit">{t('common.apply')}</button>
+          <button className="btn btn-secondary" type="button" onClick={resetFilters}>{t('common.reset')}</button>
         </div>
       </form>
 
@@ -150,7 +152,7 @@ function AdminUsersPage() {
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading users</strong>
+          <strong>{t('admin.loadingUsers')}</strong>
         </div>
       ) : null}
 
@@ -158,8 +160,8 @@ function AdminUsersPage() {
 
       {!isLoading && !error && users.length === 0 ? (
         <div className="state-card">
-          <strong>No users found</strong>
-          <p>Try changing search or filters.</p>
+          <strong>{t('admin.usersEmpty')}</strong>
+          <p>{t('tasks.noTasksText')}</p>
         </div>
       ) : null}
 
@@ -170,12 +172,12 @@ function AdminUsersPage() {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Profile</th>
-                  <th>Created</th>
-                  <th>Actions</th>
+                  <th>{t('common.email')}</th>
+                  <th>{t('common.role')}</th>
+                  <th>{t('common.status')}</th>
+                  <th>{t('navigation.profile')}</th>
+                  <th>{t('common.created')}</th>
+                  <th>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,9 +186,9 @@ function AdminUsersPage() {
                     <td>{item.id}</td>
                     <td>{item.email}</td>
                     <td>{item.role}</td>
-                    <td><span className={`status-pill status-pill--${item.status?.toLowerCase()}`}>{item.status}</span></td>
-                    <td>{getProfileInfo(item)}</td>
-                    <td>{formatDate(item.createdAt)}</td>
+                    <td><span className={`status-pill status-pill--${item.status?.toLowerCase()}`}>{t(`status.${item.status}`)}</span></td>
+                    <td>{getProfileInfo(item, t)}</td>
+                    <td>{formatDate(item.createdAt, t('common.notAvailable'))}</td>
                     <td>
                       {item.status === 'ACTIVE' ? (
                         <button
@@ -195,7 +197,7 @@ function AdminUsersPage() {
                           disabled={actingUserId === item.id || item.id === currentUser?.id}
                           onClick={() => updateUserStatus(item, 'block')}
                         >
-                          {actingUserId === item.id ? 'Blocking...' : 'Block'}
+                          {actingUserId === item.id ? `${t('admin.block')}...` : t('admin.block')}
                         </button>
                       ) : (
                         <button
@@ -204,7 +206,7 @@ function AdminUsersPage() {
                           disabled={actingUserId === item.id}
                           onClick={() => updateUserStatus(item, 'unblock')}
                         >
-                          {actingUserId === item.id ? 'Unblocking...' : 'Unblock'}
+                          {actingUserId === item.id ? `${t('admin.unblock')}...` : t('admin.unblock')}
                         </button>
                       )}
                     </td>
@@ -215,9 +217,9 @@ function AdminUsersPage() {
           </div>
 
           <div className="pagination-bar">
-            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>Previous</button>
-            <span>{count} users</span>
-            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>Next</button>
+            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>{t('common.previous')}</button>
+            <span>{count} {t('navigation.adminUsers').toLowerCase()}</span>
+            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>{t('common.next')}</button>
           </div>
         </>
       ) : null}

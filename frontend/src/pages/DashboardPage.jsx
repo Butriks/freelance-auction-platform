@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getAdminAnalytics,
   getAdminDisputes,
@@ -15,26 +16,28 @@ import { useNotifications } from '../context/NotificationContext.jsx';
 
 const emptySection = { data: null, error: '', loading: true };
 
-const quickActionsByRole = {
-  CLIENT: [
-    { title: 'Create new task', text: 'Post work and start collecting freelancer bids.', to: '/tasks/create' },
-    { title: 'View my contracts', text: 'Track escrow, milestones and delivery progress.', to: '/contracts' },
-    { title: 'View notifications', text: 'Review bids, messages and contract events.', to: '/notifications' },
-    { title: 'My disputes', text: 'Follow disputes opened on your contracts.', to: '/disputes/my' },
-  ],
-  FREELANCER: [
-    { title: 'Browse tasks', text: 'Find open marketplace tasks ready for bids.', to: '/tasks' },
-    { title: 'My contracts', text: 'Manage delivery, milestones and chat.', to: '/contracts' },
-    { title: 'Notifications', text: 'Stay current on approvals, messages and reviews.', to: '/notifications' },
-    { title: 'My disputes', text: 'Track dispute status for your contract work.', to: '/disputes/my' },
-  ],
-  ADMIN: [
-    { title: 'Users management', text: 'Review accounts, roles and access states.', to: '/admin/users' },
-    { title: 'Analytics', text: 'Open marketplace metrics and totals.', to: '/admin/analytics' },
-    { title: 'Open disputes', text: 'Resolve disputes that need admin review.', to: '/admin/disputes' },
-    { title: 'Logs', text: 'Audit important platform actions.', to: '/admin/logs' },
-  ],
-};
+function getQuickActions(t) {
+  return {
+    CLIENT: [
+      { title: t('dashboard.cards.createTask'), text: t('dashboard.cards.createTaskText'), to: '/tasks/create' },
+      { title: t('dashboard.cards.viewContracts'), text: t('dashboard.cards.viewContractsText'), to: '/contracts' },
+      { title: t('dashboard.cards.viewNotifications'), text: t('dashboard.cards.viewNotificationsText'), to: '/notifications' },
+      { title: t('dashboard.myDisputes'), text: t('dashboard.cards.myDisputesText'), to: '/disputes/my' },
+    ],
+    FREELANCER: [
+      { title: t('dashboard.cards.browseTasks'), text: t('dashboard.cards.browseTasksText'), to: '/tasks' },
+      { title: t('dashboard.myContracts'), text: t('dashboard.cards.freelancerContractsText'), to: '/contracts' },
+      { title: t('navigation.notifications'), text: t('dashboard.cards.freelancerNotificationsText'), to: '/notifications' },
+      { title: t('dashboard.myDisputes'), text: t('dashboard.cards.freelancerDisputesText'), to: '/disputes/my' },
+    ],
+    ADMIN: [
+      { title: t('dashboard.cards.usersManagement'), text: t('dashboard.cards.usersManagementText'), to: '/admin/users' },
+      { title: t('dashboard.cards.analytics'), text: t('dashboard.cards.analyticsText'), to: '/admin/analytics' },
+      { title: t('dashboard.openDisputes'), text: t('dashboard.cards.adminDisputesText'), to: '/admin/disputes' },
+      { title: t('dashboard.cards.logs'), text: t('dashboard.cards.logsText'), to: '/admin/logs' },
+    ],
+  };
+}
 
 function formatMoney(value) {
   return `$${Number(value || 0).toLocaleString('en-US')}`;
@@ -70,14 +73,14 @@ function DashboardStatCard({ label, value, caption }) {
   );
 }
 
-function DashboardActionCard({ action }) {
+function DashboardActionCard({ action, t }) {
   return (
     <article className="panel cta-panel dashboard-action-card">
       <div>
         <h3>{action.title}</h3>
         <p>{action.text}</p>
       </div>
-      <Link className="btn btn-primary" to={action.to}>Open</Link>
+      <Link className="btn btn-primary" to={action.to}>{t('common.open')}</Link>
     </article>
   );
 }
@@ -88,6 +91,7 @@ function DashboardSection({
   state,
   emptyText,
   children,
+  t,
 }) {
   return (
     <article className="panel dashboard-section">
@@ -99,13 +103,13 @@ function DashboardSection({
       {state.loading ? (
         <div className="dashboard-inline-state">
           <span className="loading-state__spinner" />
-          <strong>Loading</strong>
+          <strong>{t('common.loading')}</strong>
         </div>
       ) : null}
 
       {!state.loading && state.error ? (
         <div className="dashboard-inline-state dashboard-inline-state--error">
-          <strong>Could not load this section</strong>
+          <strong>{t('dashboard.couldNotLoadSection')}</strong>
           <p>{state.error}</p>
         </div>
       ) : null}
@@ -138,6 +142,7 @@ function SimpleList({ items, renderItem, emptyText }) {
 }
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { unreadCount } = useNotifications();
   const [sections, setSections] = useState({
@@ -151,7 +156,7 @@ function DashboardPage() {
   });
 
   const role = user?.role;
-  const quickActions = quickActionsByRole[role] || [];
+  const quickActions = getQuickActions(t)[role] || [];
 
   useEffect(() => {
     let isMounted = true;
@@ -180,7 +185,7 @@ function DashboardPage() {
         setSection(name, {
           data: null,
           loading: false,
-          error: requestError.message || 'Request failed.',
+          error: requestError.message || t('common.couldNotLoad'),
         });
       }
     };
@@ -224,16 +229,16 @@ function DashboardPage() {
     }
 
     return [
-      { label: 'Total users', value: analytics.users?.total ?? 0, caption: 'Registered platform accounts.' },
-      { label: 'Total tasks', value: analytics.tasks?.total ?? 0, caption: 'Marketplace task volume.' },
-      { label: 'Active contracts', value: analytics.contracts?.active ?? 0, caption: 'Contracts currently in delivery.' },
-      { label: 'Completed contracts', value: analytics.contracts?.completed ?? 0, caption: 'Finished contract work.' },
-      { label: 'Open disputes', value: analytics.disputes?.open ?? 0, caption: 'Needs admin attention.' },
-      { label: 'Total deposited', value: formatMoney(analytics.payments?.totalDeposited), caption: 'Mock escrow deposits.' },
-      { label: 'Total released', value: formatMoney(analytics.payments?.totalReleased), caption: 'Mock released funds.' },
-      { label: 'Average rating', value: analytics.reviews?.averageRating ?? 0, caption: 'Average review score.' },
+      { label: t('dashboard.stats.totalUsers'), value: analytics.users?.total ?? 0, caption: t('dashboard.stats.totalUsersCaption') },
+      { label: t('dashboard.stats.totalTasks'), value: analytics.tasks?.total ?? 0, caption: t('dashboard.stats.totalTasksCaption') },
+      { label: t('dashboard.stats.activeContracts'), value: analytics.contracts?.active ?? 0, caption: t('dashboard.stats.activeContractsCaption') },
+      { label: t('dashboard.stats.completedContracts'), value: analytics.contracts?.completed ?? 0, caption: t('dashboard.stats.completedContractsCaption') },
+      { label: t('dashboard.stats.openDisputes'), value: analytics.disputes?.open ?? 0, caption: t('dashboard.stats.openDisputesCaption') },
+      { label: t('dashboard.stats.totalDeposited'), value: formatMoney(analytics.payments?.totalDeposited), caption: t('dashboard.stats.totalDepositedCaption') },
+      { label: t('dashboard.stats.totalReleased'), value: formatMoney(analytics.payments?.totalReleased), caption: t('dashboard.stats.totalReleasedCaption') },
+      { label: t('dashboard.stats.averageRating'), value: analytics.reviews?.averageRating ?? 0, caption: t('dashboard.stats.averageRatingCaption') },
     ];
-  }, [sections.analytics.data]);
+  }, [sections.analytics.data, t]);
 
   const tasks = getItems(sections.tasks.data, 'tasks');
   const contracts = getItems(sections.contracts.data, 'contracts');
@@ -246,27 +251,29 @@ function DashboardPage() {
     <div className="page-stack">
       <section className="dashboard-hero">
         <div>
-          <p className="page-section__eyebrow">Dashboard</p>
-          <h2>Welcome back, {user?.email || 'user'}</h2>
-          <p>Here is the current state of your marketplace workspace.</p>
+          <p className="page-section__eyebrow">{t('dashboard.eyebrow')}</p>
+          <h2>{t('dashboard.welcome', { email: user?.email || 'user' })}</h2>
+          <p>{t('dashboard.description')}</p>
         </div>
         <div className="dashboard-hero__badges">
           <span className="role-badge">{user?.role || 'UNKNOWN'}</span>
-          <span className={`status-pill status-pill--${user?.status?.toLowerCase() || 'active'}`}>{user?.status || 'ACTIVE'}</span>
+          <span className={`status-pill status-pill--${user?.status?.toLowerCase() || 'active'}`}>
+            {t(`status.${user?.status || 'ACTIVE'}`)}
+          </span>
         </div>
       </section>
 
       <PageSection
-        eyebrow="Quick actions"
-        title="Start from here"
-        description="Shortcuts are tailored to your current role."
+        eyebrow={t('dashboard.quickActions')}
+        title={t('dashboard.startHere')}
+        description={t('dashboard.shortcuts')}
       >
         <div className="dashboard-actions-grid">
           {quickActions.length ? quickActions.map((action) => (
-            <DashboardActionCard key={action.to} action={action} />
+            <DashboardActionCard key={action.to} action={action} t={t} />
           )) : (
             <div className="state-card">
-              <strong>No role-specific actions available.</strong>
+              <strong>{t('dashboard.noActions')}</strong>
             </div>
           )}
         </div>
@@ -274,20 +281,20 @@ function DashboardPage() {
 
       {role === 'ADMIN' ? (
         <PageSection
-          eyebrow="Analytics"
-          title="Admin overview"
-          description="Live platform metrics from the backend analytics endpoint."
+          eyebrow={t('dashboard.cards.analytics')}
+          title={t('dashboard.adminOverview')}
+          description={t('dashboard.adminDescription')}
         >
           {sections.analytics.loading ? (
             <div className="state-card">
               <span className="loading-state__spinner" />
-              <strong>Loading analytics</strong>
+              <strong>{t('dashboard.loadingAnalytics')}</strong>
             </div>
           ) : null}
 
           {!sections.analytics.loading && sections.analytics.error ? (
             <div className="state-card state-card--error">
-              <strong>Could not load analytics</strong>
+              <strong>{t('dashboard.couldNotLoadAnalytics')}</strong>
               <p>{sections.analytics.error}</p>
             </div>
           ) : null}
@@ -302,39 +309,39 @@ function DashboardPage() {
         </PageSection>
       ) : role === 'CLIENT' || role === 'FREELANCER' ? (
         <PageSection
-          eyebrow="Summary"
-          title="Your work at a glance"
-          description="A compact preview of marketplace activity relevant to you."
+          eyebrow={t('dashboard.summary')}
+          title={t('dashboard.workAtGlance')}
+          description={t('dashboard.compactPreview')}
         >
           <div className="stats-grid dashboard-stats-grid">
             <DashboardStatCard
-              label={role === 'CLIENT' ? 'Recent tasks' : 'Open tasks'}
+              label={role === 'CLIENT' ? t('dashboard.stats.recentTasks') : t('dashboard.openTasks')}
               value={getCount(sections.tasks.data, tasks)}
-              caption={role === 'CLIENT' ? 'Recent marketplace tasks preview.' : 'Tasks currently open for bidding.'}
+              caption={role === 'CLIENT' ? t('dashboard.stats.recentTasksCaption') : t('dashboard.stats.openTasksCaption')}
             />
             <DashboardStatCard
-              label="Contracts"
+              label={t('dashboard.stats.contracts')}
               value={getCount(sections.contracts.data, contracts)}
-              caption="Contracts connected to your account."
+              caption={t('dashboard.stats.contractsCaption')}
             />
             <DashboardStatCard
-              label="Unread notifications"
+              label={t('dashboard.stats.unreadNotifications')}
               value={unreadCount}
-              caption="Events waiting for your attention."
+              caption={t('dashboard.stats.unreadCaption')}
             />
             {role === 'CLIENT' ? (
               <DashboardStatCard
-                label="My disputes"
+                label={t('dashboard.myDisputes')}
                 value={getCount(sections.disputes.data, disputes)}
-                caption="Disputes opened on your contracts."
+                caption={t('dashboard.stats.disputesCaption')}
               />
             ) : null}
           </div>
         </PageSection>
       ) : (
         <div className="state-card">
-          <strong>Dashboard is not available for this role.</strong>
-          <p>Please contact an administrator if your account role looks incorrect.</p>
+          <strong>{t('dashboard.notAvailableForRole')}</strong>
+          <p>{t('dashboard.incorrectRole')}</p>
         </div>
       )}
 
@@ -342,43 +349,44 @@ function DashboardPage() {
         {role === 'CLIENT' ? (
           <>
             <DashboardSection
-              title="Recent marketplace tasks"
-              description="Backend currently exposes marketplace tasks; owned-task filtering is applied only when profile data is available."
+              title={t('dashboard.recentTasks')}
+              description={t('dashboard.recentTasksDescription')}
               state={sections.tasks}
+              t={t}
             >
               <SimpleList
                 items={tasks}
-                emptyText="No recent tasks found."
+                emptyText={t('dashboard.empty.recentTasks')}
                 renderItem={(task) => (
                   <Link key={task.id} className="dashboard-list-row" to={`/tasks/${task.id}`}>
                     <strong>{task.title}</strong>
-                    <span>{task.status} - {formatMoney(task.budget)}</span>
+                    <span>{t(`status.${task.status}`)} - {formatMoney(task.budget)}</span>
                   </Link>
                 )}
               />
             </DashboardSection>
 
-            <DashboardSection title="My contracts" state={sections.contracts}>
+            <DashboardSection title={t('dashboard.myContracts')} state={sections.contracts} t={t}>
               <SimpleList
                 items={contracts}
-                emptyText="No contracts yet."
+                emptyText={t('dashboard.empty.contracts')}
                 renderItem={(contract) => (
                   <Link key={contract.id} className="dashboard-list-row" to={`/contracts/${contract.id}`}>
                     <strong>{getContractTitle(contract)}</strong>
-                    <span>{contract.status} - {formatMoney(contract.totalAmount)}</span>
+                    <span>{t(`status.${contract.status}`)} - {formatMoney(contract.totalAmount)}</span>
                   </Link>
                 )}
               />
             </DashboardSection>
 
-            <DashboardSection title="My disputes" state={sections.disputes}>
+            <DashboardSection title={t('dashboard.myDisputes')} state={sections.disputes} t={t}>
               <SimpleList
                 items={disputes}
-                emptyText="No disputes yet."
+                emptyText={t('dashboard.empty.disputes')}
                 renderItem={(dispute) => (
                   <Link key={dispute.id} className="dashboard-list-row" to={`/contracts/${dispute.contractId}`}>
                     <strong>{getDisputeTitle(dispute)}</strong>
-                    <span>{dispute.status} - {formatDate(dispute.createdAt)}</span>
+                    <span>{t(`status.${dispute.status}`)} - {formatDate(dispute.createdAt)}</span>
                   </Link>
                 )}
               />
@@ -388,27 +396,27 @@ function DashboardPage() {
 
         {role === 'FREELANCER' ? (
           <>
-            <DashboardSection title="Open tasks" state={sections.tasks}>
+            <DashboardSection title={t('dashboard.openTasks')} state={sections.tasks} t={t}>
               <SimpleList
                 items={tasks}
-                emptyText="No open tasks found."
+                emptyText={t('dashboard.empty.openTasks')}
                 renderItem={(task) => (
                   <Link key={task.id} className="dashboard-list-row" to={`/tasks/${task.id}`}>
                     <strong>{task.title}</strong>
-                    <span>{task.category?.name || 'No category'} - {formatMoney(task.budget)}</span>
+                    <span>{task.category?.name || t('tasks.noCategory')} - {formatMoney(task.budget)}</span>
                   </Link>
                 )}
               />
             </DashboardSection>
 
-            <DashboardSection title="My contracts" state={sections.contracts}>
+            <DashboardSection title={t('dashboard.myContracts')} state={sections.contracts} t={t}>
               <SimpleList
                 items={contracts}
-                emptyText="No contracts yet."
+                emptyText={t('dashboard.empty.contracts')}
                 renderItem={(contract) => (
                   <Link key={contract.id} className="dashboard-list-row" to={`/contracts/${contract.id}`}>
                     <strong>{getContractTitle(contract)}</strong>
-                    <span>{contract.status} - {formatMoney(contract.totalAmount)}</span>
+                    <span>{t(`status.${contract.status}`)} - {formatMoney(contract.totalAmount)}</span>
                   </Link>
                 )}
               />
@@ -418,23 +426,23 @@ function DashboardPage() {
 
         {role === 'ADMIN' ? (
           <>
-            <DashboardSection title="Open disputes" state={sections.adminDisputes}>
+            <DashboardSection title={t('dashboard.openDisputes')} state={sections.adminDisputes} t={t}>
               <SimpleList
                 items={adminDisputes}
-                emptyText="No open disputes."
+                emptyText={t('dashboard.empty.adminDisputes')}
                 renderItem={(dispute) => (
                   <Link key={dispute.id} className="dashboard-list-row" to="/admin/disputes">
-                    <strong>Dispute #{dispute.id}</strong>
-                    <span>Contract #{dispute.contractId} - {formatDate(dispute.createdAt)}</span>
+                    <strong>{t('dashboard.openDisputes')} #{dispute.id}</strong>
+                    <span>{t('contracts.contract', { id: dispute.contractId })} - {formatDate(dispute.createdAt)}</span>
                   </Link>
                 )}
               />
             </DashboardSection>
 
-            <DashboardSection title="Recent logs" state={sections.adminLogs}>
+            <DashboardSection title={t('dashboard.recentLogs')} state={sections.adminLogs} t={t}>
               <SimpleList
                 items={adminLogs}
-                emptyText="No recent logs."
+                emptyText={t('dashboard.empty.logs')}
                 renderItem={(log) => (
                   <Link key={log.id} className="dashboard-list-row" to="/admin/logs">
                     <strong>{log.action}</strong>
@@ -446,14 +454,14 @@ function DashboardPage() {
           </>
         ) : null}
 
-        <DashboardSection title="Latest notifications" state={sections.notifications}>
+        <DashboardSection title={t('dashboard.latestNotifications')} state={sections.notifications} t={t}>
           <SimpleList
             items={notifications}
-            emptyText="No notifications yet."
+            emptyText={t('dashboard.empty.notifications')}
             renderItem={(notification) => (
               <Link key={notification.id} className="dashboard-list-row" to="/notifications">
                 <strong>{notification.title}</strong>
-                <span>{notification.type} - {formatDate(notification.createdAt)}</span>
+                <span>{t(`notificationTypes.${notification.type}`)} - {formatDate(notification.createdAt)}</span>
               </Link>
             )}
           />

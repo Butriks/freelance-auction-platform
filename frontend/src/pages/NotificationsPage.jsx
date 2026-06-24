@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getNotifications } from '../api/notificationApi.js';
 import PageSection from '../components/PageSection.jsx';
 import { useNotifications } from '../context/NotificationContext.jsx';
@@ -17,24 +18,12 @@ const notificationTypes = [
   'SYSTEM',
 ];
 
-const typeLabels = {
-  NEW_BID: 'New bid',
-  BID_ACCEPTED: 'Bid accepted',
-  CONTRACT_CREATED: 'Contract created',
-  MILESTONE_SUBMITTED: 'Milestone submitted',
-  MILESTONE_APPROVED: 'Milestone approved',
-  MILESTONE_REJECTED: 'Milestone rejected',
-  CONTRACT_COMPLETED: 'Contract completed',
-  NEW_MESSAGE: 'New message',
-  REVIEW_CREATED: 'New review',
-  SYSTEM: 'System',
-};
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleString() : 'Just now';
+function formatDate(value, fallback) {
+  return value ? new Date(value).toLocaleString() : fallback;
 }
 
 function NotificationsPage() {
+  const { t } = useTranslation();
   const {
     unreadCount,
     latestNotification,
@@ -71,7 +60,7 @@ function NotificationsPage() {
       setCount(data.count || 0);
       await refreshUnreadCount();
     } catch (requestError) {
-      setError(requestError.message || 'Unable to load notifications.');
+      setError(requestError.message || t('notifications.unableToLoad'));
       setNotifications([]);
       setCount(0);
     } finally {
@@ -81,7 +70,7 @@ function NotificationsPage() {
 
   useEffect(() => {
     loadNotifications();
-  }, [params]);
+  }, [params, t]);
 
   useEffect(() => {
     if (!latestNotification) {
@@ -126,9 +115,9 @@ function NotificationsPage() {
       setNotifications((currentNotifications) => currentNotifications.map((item) => (
         item.id === id ? notification : item
       )));
-      setMessage('Notification marked as read.');
+      setMessage(t('notifications.markedRead'));
     } catch (requestError) {
-      setMessage(requestError.message || 'Unable to mark notification as read.');
+      setMessage(requestError.message || t('notifications.unableToMark'));
     } finally {
       setIsMutating(false);
     }
@@ -144,9 +133,9 @@ function NotificationsPage() {
         ...notification,
         isRead: true,
       })));
-      setMessage('All notifications marked as read.');
+      setMessage(t('notifications.allMarkedRead'));
     } catch (requestError) {
-      setMessage(requestError.message || 'Unable to mark all notifications as read.');
+      setMessage(requestError.message || t('notifications.unableToMark'));
     } finally {
       setIsMutating(false);
     }
@@ -154,36 +143,36 @@ function NotificationsPage() {
 
   return (
     <PageSection
-      eyebrow="Notifications"
-      title="Inbox of marketplace events"
-      description="Track bids, milestones, messages, reviews and system updates from one focused inbox."
+      eyebrow={t('notifications.eyebrow')}
+      title={t('notifications.title')}
+      description={t('notifications.description')}
       action={(
         <button className="btn btn-primary" type="button" disabled={isMutating || unreadCount === 0} onClick={handleMarkAllAsRead}>
-          Mark all as read
+          {isMutating ? t('notifications.marking') : t('notifications.markAll')}
         </button>
       )}
     >
       <div className="notification-summary">
         <article className="stat-card">
-          <span className="stat-card__label">Unread</span>
+          <span className="stat-card__label">{t('notifications.unread')}</span>
           <strong className="stat-card__value">{unreadCount}</strong>
-          <p className="stat-card__caption">Notifications waiting for attention.</p>
+          <p className="stat-card__caption">{t('dashboard.stats.unreadCaption')}</p>
         </article>
       </div>
 
       <div className="filter-card notification-filter-card">
         <div className="segmented-control">
-          <button className={`segment${readFilter === 'all' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('all')}>All</button>
-          <button className={`segment${readFilter === 'unread' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('unread')}>Unread</button>
-          <button className={`segment${readFilter === 'read' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('read')}>Read</button>
+          <button className={`segment${readFilter === 'all' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('all')}>{t('notifications.all')}</button>
+          <button className={`segment${readFilter === 'unread' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('unread')}>{t('notifications.unread')}</button>
+          <button className={`segment${readFilter === 'read' ? ' segment--active' : ''}`} type="button" onClick={() => handleReadFilterChange('read')}>{t('notifications.read')}</button>
         </div>
 
         <label className="form-field">
-          <span>Type</span>
+          <span>{t('notifications.type')}</span>
           <select value={typeFilter} onChange={handleTypeChange}>
-            <option value="">All types</option>
+            <option value="">{t('notifications.allTypes')}</option>
             {notificationTypes.map((type) => (
-              <option key={type} value={type}>{typeLabels[type]}</option>
+              <option key={type} value={type}>{t(`notificationTypes.${type}`)}</option>
             ))}
           </select>
         </label>
@@ -194,7 +183,7 @@ function NotificationsPage() {
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading notifications</strong>
+          <strong>{t('notifications.loading')}</strong>
         </div>
       ) : null}
 
@@ -206,8 +195,8 @@ function NotificationsPage() {
 
       {!isLoading && !error && notifications.length === 0 ? (
         <div className="state-card">
-          <strong>No notifications found</strong>
-          <p>New platform events will appear here as work moves forward.</p>
+          <strong>{t('notifications.empty')}</strong>
+          <p>{t('notifications.emptyText')}</p>
         </div>
       ) : null}
 
@@ -218,14 +207,14 @@ function NotificationsPage() {
               <article key={notification.id} className={`notification-card${notification.isRead ? '' : ' notification-card--unread'}`}>
                 <div className="notification-card__content">
                   <div className="notification-card__header">
-                    <span className="type-badge">{typeLabels[notification.type] || notification.type}</span>
+                    <span className="type-badge">{t(`notificationTypes.${notification.type}`)}</span>
                     <span className={`read-badge${notification.isRead ? ' read-badge--read' : ''}`}>
-                      {notification.isRead ? 'Read' : 'Unread'}
+                      {notification.isRead ? t('notifications.readState') : t('notifications.unreadState')}
                     </span>
                   </div>
                   <h3>{notification.title}</h3>
                   <p>{notification.message}</p>
-                  <time>{formatDate(notification.createdAt)}</time>
+                  <time>{formatDate(notification.createdAt, t('bids.recently'))}</time>
                 </div>
 
                 {!notification.isRead ? (
@@ -235,7 +224,7 @@ function NotificationsPage() {
                     disabled={isMutating}
                     onClick={() => handleMarkAsRead(notification.id)}
                   >
-                    Mark as read
+                    {t('notifications.markRead')}
                   </button>
                 ) : null}
               </article>
@@ -244,11 +233,11 @@ function NotificationsPage() {
 
           <div className="pagination-bar">
             <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>
-              Previous
+              {t('common.previous')}
             </button>
-            <span>{count} notifications</span>
+            <span>{count} {t('navigation.notifications').toLowerCase()}</span>
             <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>
-              Next
+              {t('common.next')}
             </button>
           </div>
         </>

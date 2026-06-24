@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getContractById } from '../api/contractApi.js';
 import { createDispute } from '../api/disputeApi.js';
 import {
@@ -28,24 +29,25 @@ function formatMoney(value) {
   return `$${Number(value || 0).toLocaleString('en-US')}`;
 }
 
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : 'N/A';
+function formatDate(value, fallback = 'N/A') {
+  return value ? new Date(value).toLocaleDateString() : fallback;
 }
 
-function getClientName(contract) {
-  return contract.client?.companyName || contract.client?.user?.email || 'Client';
+function getClientName(contract, t) {
+  return contract.client?.companyName || contract.client?.user?.email || t('tasks.client');
 }
 
-function getFreelancerName(contract) {
+function getFreelancerName(contract, t) {
   const firstName = contract.freelancer?.firstName || '';
   const lastName = contract.freelancer?.lastName || '';
   const fullName = `${firstName} ${lastName}`.trim();
 
-  return fullName || contract.freelancer?.user?.email || 'Freelancer';
+  return fullName || contract.freelancer?.user?.email || t('contracts.freelancer');
 }
 
 function ContractDetailsPage() {
   const { id } = useParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [contract, setContract] = useState(null);
   const [milestoneForm, setMilestoneForm] = useState(initialMilestoneForm);
@@ -82,7 +84,7 @@ function ContractDetailsPage() {
         await loadContract();
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load contract.');
+          setError(requestError.message || t('contracts.unableToLoadContract'));
         }
       } finally {
         if (isMounted) {
@@ -96,7 +98,7 @@ function ContractDetailsPage() {
     return () => {
       isMounted = false;
     };
-  }, [loadContract]);
+  }, [loadContract, t]);
 
   const handleMilestoneChange = (event) => {
     const { name, value } = event.target;
@@ -108,7 +110,7 @@ function ContractDetailsPage() {
     setMessage('');
 
     if (!milestoneForm.title.trim() || Number(milestoneForm.amount) <= 0 || !milestoneForm.dueDate) {
-      setMessage('Please fill title, amount and due date.');
+      setMessage(t('milestones.validation'));
       return;
     }
 
@@ -123,9 +125,9 @@ function ContractDetailsPage() {
       });
       setMilestoneForm(initialMilestoneForm);
       await loadContract();
-      setMessage('Milestone created.');
+      setMessage(t('milestones.created'));
     } catch (requestError) {
-      setMessage(requestError.message || 'Unable to create milestone.');
+      setMessage(requestError.message || t('milestones.unableToCreate'));
     } finally {
       setIsCreating(false);
     }
@@ -140,7 +142,7 @@ function ContractDetailsPage() {
       await loadContract();
       setMessage(successMessage);
     } catch (requestError) {
-      setMessage(requestError.message || 'Unable to update milestone.');
+      setMessage(requestError.message || t('milestones.unableToUpdate'));
     } finally {
       setActingMilestoneId(null);
     }
@@ -150,14 +152,14 @@ function ContractDetailsPage() {
     const reason = rejectReasonById[milestoneId] || '';
 
     if (!reason.trim()) {
-      setMessage('Please add a rejection reason.');
+      setMessage(t('milestones.rejectValidation'));
       return;
     }
 
     runMilestoneAction(
       milestoneId,
       () => rejectMilestone(milestoneId, { reason: reason.trim() }),
-      'Milestone rejected.',
+      t('milestones.rejected'),
     );
   };
 
@@ -168,12 +170,12 @@ function ContractDetailsPage() {
     const reason = disputeForm.reason.trim();
 
     if (reason.length < 10) {
-      setMessage('Dispute reason must be at least 10 characters.');
+      setMessage(t('disputes.reasonMin'));
       return;
     }
 
     if (reason.length > 3000) {
-      setMessage('Dispute reason must be 3000 characters or less.');
+      setMessage(t('disputes.reasonMax'));
       return;
     }
 
@@ -184,12 +186,12 @@ function ContractDetailsPage() {
       setDisputeForm(initialDisputeForm);
       setIsDisputeFormOpen(false);
       await loadContract();
-      setMessage('Dispute opened. Admins have been notified.');
+      setMessage(t('disputes.opened'));
     } catch (requestError) {
       setMessage(
         requestError.response?.status === 409
-          ? 'There is already an open dispute for this contract.'
-          : requestError.message || 'Unable to open dispute.',
+          ? t('disputes.alreadyOpen')
+          : requestError.message || t('disputes.unableToOpen'),
       );
     } finally {
       setIsOpeningDispute(false);
@@ -200,8 +202,8 @@ function ContractDetailsPage() {
     return (
       <div className="state-card">
         <span className="loading-state__spinner" />
-        <strong>Loading contract</strong>
-        <p>Fetching contract details.</p>
+        <strong>{t('common.loading')}</strong>
+        <p>{t('contracts.unableToLoadContract')}</p>
       </div>
     );
   }
@@ -210,7 +212,7 @@ function ContractDetailsPage() {
     return (
       <div className="state-card state-card--error">
         <strong>{error}</strong>
-        <Link className="btn btn-secondary" to="/contracts">Back to contracts</Link>
+        <Link className="btn btn-secondary" to="/contracts">{t('contracts.backToContracts')}</Link>
       </div>
     );
   }
@@ -218,25 +220,25 @@ function ContractDetailsPage() {
   return (
     <div className="page-stack">
       <PageSection
-        eyebrow={`Contract #${contract.id}`}
-        title={contract.task?.title || 'Contract details'}
-        description="Review delivery progress, escrow state, milestones and mock payments."
-        action={<Link className="btn btn-secondary" to="/contracts">Back to contracts</Link>}
+        eyebrow={t('contracts.contract', { id: contract.id })}
+        title={contract.task?.title || t('contracts.detailsTitle')}
+        description={t('contracts.detailsDescription')}
+        action={<Link className="btn btn-secondary" to="/contracts">{t('contracts.backToContracts')}</Link>}
       >
         <div className="contract-hero">
           <div>
-            <span className={`status-pill status-pill--${contract.status?.toLowerCase()}`}>{contract.status}</span>
+            <span className={`status-pill status-pill--${contract.status?.toLowerCase()}`}>{t(`status.${contract.status}`)}</span>
             <h3>{formatMoney(contract.totalAmount)}</h3>
-            <p>Started {formatDate(contract.startedAt)}{contract.completedAt ? `, completed ${formatDate(contract.completedAt)}` : ''}</p>
+            <p>{t('contracts.startedAt', { date: formatDate(contract.startedAt, t('common.notAvailable')) })}{contract.completedAt ? t('contracts.completedAt', { date: formatDate(contract.completedAt, t('common.notAvailable')) }) : ''}</p>
           </div>
           <div className="task-card__meta">
             <span>
-              <strong>{getClientName(contract)}</strong>
-              Client
+              <strong>{getClientName(contract, t)}</strong>
+              {t('tasks.client')}
             </span>
             <span>
-              <strong>{getFreelancerName(contract)}</strong>
-              Freelancer
+              <strong>{getFreelancerName(contract, t)}</strong>
+              {t('contracts.freelancer')}
             </span>
           </div>
         </div>
@@ -244,35 +246,35 @@ function ContractDetailsPage() {
         <div className="detail-grid">
           <article className="panel task-detail-panel">
             <div className="task-card__top">
-              <h3>Task summary</h3>
-              <span className={`status-pill status-pill--${contract.task?.status?.toLowerCase()}`}>{contract.task?.status}</span>
+              <h3>{t('contracts.taskSummary')}</h3>
+              <span className={`status-pill status-pill--${contract.task?.status?.toLowerCase()}`}>{t(`status.${contract.task?.status}`)}</span>
             </div>
-            <p>{contract.task?.description || 'No task description.'}</p>
+            <p>{contract.task?.description || t('common.notAvailable')}</p>
             <div className="task-card__meta">
               <span>
                 <strong>{formatMoney(contract.task?.budget)}</strong>
-                Budget
+                {t('tasks.budget')}
               </span>
               <span>
-                <strong>{contract.task?.deadline || 'N/A'}</strong>
-                Deadline
+                <strong>{contract.task?.deadline || t('common.notAvailable')}</strong>
+                {t('tasks.deadline')}
               </span>
             </div>
           </article>
 
           <article className="panel details-list">
-            <h3>Participants</h3>
+            <h3>{t('contracts.participants')}</h3>
             <dl>
               <div>
-                <dt>Client</dt>
-                <dd>{getClientName(contract)}</dd>
+                <dt>{t('tasks.client')}</dt>
+                <dd>{getClientName(contract, t)}</dd>
               </div>
               <div>
-                <dt>Freelancer</dt>
-                <dd>{getFreelancerName(contract)}</dd>
+                <dt>{t('contracts.freelancer')}</dt>
+                <dd>{getFreelancerName(contract, t)}</dd>
               </div>
               <div>
-                <dt>Rating</dt>
+                <dt>{t('reviews.rating')}</dt>
                 <dd>{Number(contract.freelancer?.rating || 0).toFixed(2)}</dd>
               </div>
             </dl>
@@ -282,42 +284,42 @@ function ContractDetailsPage() {
         <div className="detail-grid">
           <article className="panel">
             <div className="task-card__top">
-              <h3>Mock escrow</h3>
-              <span className={`status-pill status-pill--${contract.escrow?.status?.toLowerCase()}`}>{contract.escrow?.status || 'N/A'}</span>
+              <h3>{t('contracts.mockEscrow')}</h3>
+              <span className={`status-pill status-pill--${contract.escrow?.status?.toLowerCase()}`}>{contract.escrow?.status ? t(`status.${contract.escrow.status}`) : t('common.notAvailable')}</span>
             </div>
-            <p>Funds are held in mock escrow until milestones are approved.</p>
+            <p>{t('contracts.escrowText')}</p>
             <strong className="metric-value">{formatMoney(contract.escrow?.amount)}</strong>
           </article>
 
           <article className="panel">
-            <h3>Accepted bid</h3>
-            <p>{contract.acceptedBid?.comment || 'No bid comment.'}</p>
+            <h3>{t('contracts.acceptedBid')}</h3>
+            <p>{contract.acceptedBid?.comment || t('contracts.noBidComment')}</p>
             <div className="task-card__meta">
               <span>
                 <strong>{formatMoney(contract.acceptedBid?.price)}</strong>
-                Price
+                {t('common.price')}
               </span>
               <span>
-                <strong>{contract.acceptedBid?.deliveryDays || 'N/A'} days</strong>
-                Delivery
+                <strong>{contract.acceptedBid?.deliveryDays ? t('bids.days', { count: contract.acceptedBid.deliveryDays }) : t('common.notAvailable')}</strong>
+                {t('bids.delivery')}
               </span>
             </div>
           </article>
         </div>
       </PageSection>
 
-      <PageSection eyebrow="Payments" title="Mock payment history">
+      <PageSection eyebrow={t('contracts.paymentsTitle')} title={t('contracts.paymentsTitle')}>
         {contract.payments?.length ? (
           <div className="table-card">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Date</th>
+                  <th>{t('contracts.type')}</th>
+                  <th>{t('common.amount')}</th>
+                  <th>{t('common.status')}</th>
+                  <th>{t('contracts.from')}</th>
+                  <th>{t('contracts.to')}</th>
+                  <th>{t('common.date')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,10 +327,10 @@ function ContractDetailsPage() {
                   <tr key={payment.id}>
                     <td>{payment.type}</td>
                     <td>{formatMoney(payment.amount)}</td>
-                    <td><span className={`status-pill status-pill--${payment.status?.toLowerCase()}`}>{payment.status}</span></td>
-                    <td>{payment.fromUser?.email || 'N/A'}</td>
-                    <td>{payment.toUser?.email || 'N/A'}</td>
-                    <td>{formatDate(payment.createdAt)}</td>
+                    <td><span className={`status-pill status-pill--${payment.status?.toLowerCase()}`}>{t(`status.${payment.status}`)}</span></td>
+                    <td>{payment.fromUser?.email || t('common.notAvailable')}</td>
+                    <td>{payment.toUser?.email || t('common.notAvailable')}</td>
+                    <td>{formatDate(payment.createdAt, t('common.notAvailable'))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -336,39 +338,39 @@ function ContractDetailsPage() {
           </div>
         ) : (
           <div className="state-card">
-            <strong>No payments yet</strong>
+            <strong>{t('contracts.noPayments')}</strong>
           </div>
         )}
       </PageSection>
 
       {canUseDisputeUi ? (
         <PageSection
-          eyebrow="Dispute"
-          title="Contract dispute"
-          description="Request admin review when contract delivery needs intervention."
+          eyebrow={t('disputes.eyebrow')}
+          title={t('disputes.contractDispute')}
+          description={t('disputes.contractDisputeDescription')}
         >
           {contract.status === 'DISPUTED' ? (
             <div className="state-card">
-              <strong>This contract is currently disputed.</strong>
-              <p>Admin review is in progress. You can track your dispute from My Disputes.</p>
-              <Link className="btn btn-secondary" to="/disputes/my">Open My Disputes</Link>
+              <strong>{t('disputes.currentlyDisputed')}</strong>
+              <p>{t('disputes.reviewProgress')}</p>
+              <Link className="btn btn-secondary" to="/disputes/my">{t('disputes.openMyDisputes')}</Link>
             </div>
           ) : null}
 
           {contract.status === 'COMPLETED' ? (
             <div className="state-card">
-              <strong>Dispute creation is closed for completed contracts.</strong>
+              <strong>{t('disputes.closedCompleted')}</strong>
             </div>
           ) : null}
 
           {contract.status === 'ACTIVE' ? (
             <div className="panel dispute-panel">
               <div>
-                <h3>Need admin review?</h3>
-                <p>Open a dispute if the work result or contract process no longer matches expectations.</p>
+                <h3>{t('disputes.needReview')}</h3>
+                <p>{t('disputes.needReviewText')}</p>
               </div>
               <button className="btn btn-secondary" type="button" onClick={() => setIsDisputeFormOpen((current) => !current)}>
-                {isDisputeFormOpen ? 'Cancel' : 'Open dispute'}
+                {isDisputeFormOpen ? t('common.cancel') : t('disputes.openDispute')}
               </button>
             </div>
           ) : null}
@@ -376,49 +378,49 @@ function ContractDetailsPage() {
           {contract.status === 'ACTIVE' && isDisputeFormOpen ? (
             <form className="form-grid form-card dispute-form" onSubmit={handleOpenDispute}>
               <label className="form-field">
-                <span>Reason</span>
+                <span>{t('disputes.reason')}</span>
                 <textarea
                   rows="5"
                   maxLength="3000"
                   value={disputeForm.reason}
                   onChange={(event) => setDisputeForm({ reason: event.target.value })}
-                  placeholder="The work result does not match the agreed requirements."
+                  placeholder={t('disputes.reasonPlaceholder')}
                   required
                 />
               </label>
               <button className="btn btn-primary" type="submit" disabled={isOpeningDispute}>
-                {isOpeningDispute ? 'Opening...' : 'Submit dispute'}
+                {isOpeningDispute ? t('disputes.opening') : t('disputes.submitDispute')}
               </button>
             </form>
           ) : null}
         </PageSection>
       ) : null}
 
-      <PageSection eyebrow="Milestones" title="Delivery milestones">
+      <PageSection eyebrow={t('milestones.eyebrow')} title={t('milestones.title')}>
         {message ? <p className="form-success">{message}</p> : null}
 
         {isClient && isActive ? (
           <form className="form-grid form-card milestone-form" onSubmit={handleCreateMilestone}>
             <div className="form-grid form-grid--columns">
               <label className="form-field">
-                <span>Title</span>
-                <input name="title" value={milestoneForm.title} onChange={handleMilestoneChange} placeholder="Design phase" required />
+                <span>{t('common.title')}</span>
+                <input name="title" value={milestoneForm.title} onChange={handleMilestoneChange} placeholder={t('milestones.placeholderTitle')} required />
               </label>
               <label className="form-field">
-                <span>Amount</span>
+                <span>{t('common.amount')}</span>
                 <input name="amount" type="number" min="1" value={milestoneForm.amount} onChange={handleMilestoneChange} placeholder="300" required />
               </label>
             </div>
             <label className="form-field">
-              <span>Description</span>
-              <textarea name="description" rows="3" value={milestoneForm.description} onChange={handleMilestoneChange} placeholder="Create page layout and visual design" />
+              <span>{t('common.description')}</span>
+              <textarea name="description" rows="3" value={milestoneForm.description} onChange={handleMilestoneChange} placeholder={t('milestones.descriptionPlaceholder')} />
             </label>
             <label className="form-field">
-              <span>Due date</span>
+              <span>{t('milestones.dueDate')}</span>
               <input name="dueDate" type="date" value={milestoneForm.dueDate} onChange={handleMilestoneChange} required />
             </label>
             <button className="btn btn-primary" type="submit" disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create milestone'}
+              {isCreating ? t('milestones.creating') : t('milestones.create')}
             </button>
           </form>
         ) : null}
@@ -430,19 +432,19 @@ function ContractDetailsPage() {
                 <div className="bid-card__header">
                   <div>
                     <h3>{milestone.title}</h3>
-                    <p>{milestone.description || 'No description.'}</p>
+                    <p>{milestone.description || t('milestones.noDescription')}</p>
                   </div>
-                  <span className={`status-pill status-pill--${milestone.status?.toLowerCase()}`}>{milestone.status}</span>
+                  <span className={`status-pill status-pill--${milestone.status?.toLowerCase()}`}>{t(`status.${milestone.status}`)}</span>
                 </div>
 
                 <div className="task-card__meta">
                   <span>
                     <strong>{formatMoney(milestone.amount)}</strong>
-                    Amount
+                    {t('common.amount')}
                   </span>
                   <span>
-                    <strong>{milestone.dueDate || 'N/A'}</strong>
-                    Due date
+                    <strong>{milestone.dueDate || t('common.notAvailable')}</strong>
+                    {t('milestones.dueDate')}
                   </span>
                 </div>
 
@@ -451,9 +453,9 @@ function ContractDetailsPage() {
                     className="btn btn-primary"
                     type="button"
                     disabled={actingMilestoneId === milestone.id}
-                    onClick={() => runMilestoneAction(milestone.id, () => submitMilestone(milestone.id), 'Milestone submitted.')}
+                    onClick={() => runMilestoneAction(milestone.id, () => submitMilestone(milestone.id), t('milestones.submitted'))}
                   >
-                    {actingMilestoneId === milestone.id ? 'Submitting...' : 'Submit'}
+                    {actingMilestoneId === milestone.id ? t('milestones.submitting') : t('milestones.submit')}
                   </button>
                 ) : null}
 
@@ -464,17 +466,17 @@ function ContractDetailsPage() {
                         className="btn btn-primary"
                         type="button"
                         disabled={actingMilestoneId === milestone.id}
-                        onClick={() => runMilestoneAction(milestone.id, () => approveMilestone(milestone.id), 'Milestone approved.')}
+                        onClick={() => runMilestoneAction(milestone.id, () => approveMilestone(milestone.id), t('milestones.approved'))}
                       >
-                        {actingMilestoneId === milestone.id ? 'Approving...' : 'Approve'}
+                        {actingMilestoneId === milestone.id ? t('milestones.approving') : t('milestones.approve')}
                       </button>
                     </div>
                     <label className="form-field">
-                      <span>Reject reason</span>
+                      <span>{t('milestones.rejectReason')}</span>
                       <input
                         value={rejectReasonById[milestone.id] || ''}
                         onChange={(event) => setRejectReasonById((current) => ({ ...current, [milestone.id]: event.target.value }))}
-                        placeholder="Please fix layout issues"
+                        placeholder={t('milestones.rejectPlaceholder')}
                       />
                     </label>
                     <button
@@ -483,7 +485,7 @@ function ContractDetailsPage() {
                       disabled={actingMilestoneId === milestone.id}
                       onClick={() => handleReject(milestone.id)}
                     >
-                      {actingMilestoneId === milestone.id ? 'Rejecting...' : 'Reject'}
+                      {actingMilestoneId === milestone.id ? t('milestones.rejecting') : t('milestones.reject')}
                     </button>
                   </div>
                 ) : null}
@@ -492,8 +494,8 @@ function ContractDetailsPage() {
           </div>
         ) : (
           <div className="state-card">
-            <strong>No milestones yet</strong>
-            <p>Create a milestone to split delivery into clear review steps.</p>
+            <strong>{t('milestones.empty')}</strong>
+            <p>{t('milestones.emptyText')}</p>
           </div>
         )}
       </PageSection>

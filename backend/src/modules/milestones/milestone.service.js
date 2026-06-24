@@ -11,6 +11,11 @@ const {
 } = require('../../models');
 const { createNotification } = require('../../services/notificationService');
 const { createLog } = require('../../services/logService');
+const {
+  creditForEscrowRelease,
+  decimalToCents,
+  centsToDecimal,
+} = require('../wallet/wallet.service');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -240,7 +245,7 @@ const approveMilestone = async (user, milestoneId, options = {}) => {
 
     await milestone.update({ status: 'APPROVED' }, { transaction });
 
-    await Payment.create(
+    const payment = await Payment.create(
       {
         contractId: contract.id,
         fromUserId: clientProfile.userId,
@@ -252,26 +257,33 @@ const approveMilestone = async (user, milestoneId, options = {}) => {
       { transaction },
     );
 
-    const approvedTotalRaw = await Milestone.sum('amount', {
-      where: {
-        contractId: contract.id,
-        status: 'APPROVED',
+    const walletResult = await creditForEscrowRelease({
+      userId: freelancerProfile.userId,
+      amount: milestone.amount,
+      contractId: contract.id,
+      milestoneId: milestone.id,
+      paymentId: payment.id,
+      metadata: {
+        milestoneTitle: milestone.title,
+        currency: 'USD',
       },
       transaction,
     });
 
-    const approvedTotal = Number(approvedTotalRaw || 0);
-    const escrowAmount = Number(escrow.amount);
+    const releasedAmountCents = decimalToCents(escrow.releasedAmount || '0.00')
+      + decimalToCents(milestone.amount);
+    const escrowAmountCents = decimalToCents(escrow.amount);
+    const releasedAmount = centsToDecimal(releasedAmountCents);
     const updates = {};
     const taskUpdates = {};
 
-    if (approvedTotal >= escrowAmount) {
-      await escrow.update({ status: 'RELEASED' }, { transaction });
+    if (releasedAmountCents >= escrowAmountCents) {
+      await escrow.update({ releasedAmount, status: 'RELEASED' }, { transaction });
       updates.status = 'COMPLETED';
       updates.completedAt = new Date();
       taskUpdates.status = 'COMPLETED';
     } else {
-      await escrow.update({ status: 'PARTIALLY_RELEASED' }, { transaction });
+      await escrow.update({ releasedAmount, status: 'PARTIALLY_RELEASED' }, { transaction });
     }
 
     if (Object.keys(updates).length > 0) {
@@ -291,6 +303,7 @@ const approveMilestone = async (user, milestoneId, options = {}) => {
       freelancerUserId: freelancerProfile.userId,
       clientUserId: clientProfile.userId,
       contractCompleted: updates.status === 'COMPLETED',
+      escrowReleaseTransactionId: walletResult.transaction.id,
     };
   });
 
@@ -299,6 +312,14 @@ const approveMilestone = async (user, milestoneId, options = {}) => {
     title: 'Milestone approved',
     message: 'Your milestone was approved.',
     type: 'MILESTONE_APPROVED',
+    io: options.io,
+  });
+
+  await createNotification({
+    userId: result.freelancerUserId,
+    title: 'Wallet credited',
+    message: 'Milestone reward was added to your wallet.',
+    type: 'SYSTEM',
     io: options.io,
   });
 
@@ -327,6 +348,18 @@ const approveMilestone = async (user, milestoneId, options = {}) => {
     metadata: {
       contractId: result.contractSummary.id,
       contractCompleted: result.contractCompleted,
+    },
+  });
+
+  await createLog({
+    userId: user.id,
+    action: 'ESCROW_RELEASE',
+    entityType: 'WalletTransaction',
+    entityId: result.escrowReleaseTransactionId,
+    metadata: {
+      contractId: result.contractSummary.id,
+      milestoneId: result.milestone.id,
+      currency: 'USD',
     },
   });
 

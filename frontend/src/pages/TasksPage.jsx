@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { fallbackCategories } from '../api/categoryApi.js';
 import { getTasks } from '../api/taskApi.js';
 import PageSection from '../components/PageSection.jsx';
@@ -21,6 +22,7 @@ function formatMoney(value) {
 }
 
 function TasksPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [count, setCount] = useState(0);
@@ -62,7 +64,7 @@ function TasksPage() {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load tasks.');
+          setError(requestError.message || t('tasks.unableToLoad'));
           setTasks([]);
           setCount(0);
         }
@@ -100,41 +102,41 @@ function TasksPage() {
 
   return (
     <PageSection
-      eyebrow="Tasks"
-      title="Task board"
-      description="Browse client tasks, filter open opportunities and move into details when something looks worth a closer look."
+      eyebrow={t('tasks.eyebrow')}
+      title={t('tasks.boardTitle')}
+      description={t('tasks.boardDescription')}
       action={user?.role === 'CLIENT' ? (
         <Link className="btn btn-primary" to="/tasks/create">
-          Create Task
+          {t('tasks.createTask')}
         </Link>
       ) : null}
     >
       <form className="filter-card" onSubmit={applyFilters}>
         <label className="form-field">
-          <span>Search</span>
+          <span>{t('common.search')}</span>
           <input
             name="search"
             type="search"
             value={filters.search}
             onChange={handleChange}
-            placeholder="Search by title or description"
+            placeholder={t('tasks.searchPlaceholder')}
           />
         </label>
 
         <label className="form-field">
-          <span>Status</span>
+          <span>{t('common.status')}</span>
           <select name="status" value={filters.status} onChange={handleChange}>
-            <option value="">All statuses</option>
+            <option value="">{t('tasks.allStatuses')}</option>
             {statuses.map((status) => (
-              <option key={status} value={status}>{status}</option>
+              <option key={status} value={status}>{t(`status.${status}`)}</option>
             ))}
           </select>
         </label>
 
         <label className="form-field">
-          <span>Category</span>
+          <span>{t('tasks.category')}</span>
           <select name="categoryId" value={filters.categoryId} onChange={handleChange}>
-            <option value="">All categories</option>
+            <option value="">{t('tasks.allCategories')}</option>
             {fallbackCategories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
             ))}
@@ -142,30 +144,30 @@ function TasksPage() {
         </label>
 
         <div className="filter-card__actions">
-          <button className="btn btn-primary" type="submit">Apply</button>
-          <button className="btn btn-secondary" type="button" onClick={resetFilters}>Reset</button>
+          <button className="btn btn-primary" type="submit">{t('common.apply')}</button>
+          <button className="btn btn-secondary" type="button" onClick={resetFilters}>{t('common.reset')}</button>
         </div>
       </form>
 
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading tasks</strong>
-          <p>Fetching the latest task board.</p>
+          <strong>{t('tasks.loading')}</strong>
+          <p>{t('tasks.loadingText')}</p>
         </div>
       ) : null}
 
       {error ? (
         <div className="state-card state-card--error">
           <strong>{error}</strong>
-          <p>Check that the backend is running and your session is still valid.</p>
+          <p>{t('common.couldNotLoad')}</p>
         </div>
       ) : null}
 
       {!isLoading && !error && tasks.length === 0 ? (
         <div className="state-card">
-          <strong>No tasks found</strong>
-          <p>Try another filter or create the first task as a client.</p>
+          <strong>{t('tasks.noTasks')}</strong>
+          <p>{t('tasks.noTasksText')}</p>
         </div>
       ) : null}
 
@@ -176,7 +178,7 @@ function TasksPage() {
               <article key={task.id} className="task-card">
                 <div className="task-card__top">
                   <span className={`status-pill status-pill--${task.status?.toLowerCase()}`}>
-                    {task.status}
+                    {t(`status.${task.status}`)}
                   </span>
                   <span className="task-card__category">{getCategoryName(task)}</span>
                 </div>
@@ -189,16 +191,16 @@ function TasksPage() {
                 <div className="task-card__meta">
                   <span>
                     <strong>{formatMoney(task.budget)}</strong>
-                    Budget
+                    {t('tasks.budget')}
                   </span>
                   <span>
                     <strong>{task.deadline}</strong>
-                    Deadline
+                    {t('tasks.deadline')}
                   </span>
                 </div>
 
                 <Link className="btn btn-secondary" to={`/tasks/${task.id}`}>
-                  View details
+                  {t('common.viewDetails')}
                 </Link>
               </article>
             ))}
@@ -211,16 +213,16 @@ function TasksPage() {
               disabled={!hasPrevious}
               onClick={() => setOffset((current) => Math.max(0, current - limit))}
             >
-              Previous
+              {t('common.previous')}
             </button>
-            <span>Page {page} of {Math.max(1, Math.ceil(count / limit))}</span>
+            <span>{t('tasks.pageOf', { page, total: Math.max(1, Math.ceil(count / limit)) })}</span>
             <button
               className="btn btn-secondary"
               type="button"
               disabled={!hasNext}
               onClick={() => setOffset((current) => current + limit)}
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         </>

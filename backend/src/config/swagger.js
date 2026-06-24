@@ -8,6 +8,7 @@ const milestonesDocs = require('../docs/swagger/milestones.docs');
 const reviewsDocs = require('../docs/swagger/reviews.docs');
 const messagesDocs = require('../docs/swagger/messages.docs');
 const notificationsDocs = require('../docs/swagger/notifications.docs');
+const walletDocs = require('../docs/swagger/wallet.docs');
 const disputesDocs = require('../docs/swagger/disputes.docs');
 const adminDocs = require('../docs/swagger/admin.docs');
 
@@ -38,6 +39,7 @@ const options = {
       { name: 'Reviews' },
       { name: 'Messages' },
       { name: 'Notifications' },
+      { name: 'Wallet' },
       { name: 'Disputes' },
       { name: 'Admin' },
     ],
@@ -182,6 +184,7 @@ const options = {
             id: { type: 'integer', example: 1 },
             contractId: { type: 'integer', example: 1 },
             amount: { type: 'number', format: 'float', example: 450 },
+            releasedAmount: { type: 'number', format: 'float', example: 0 },
             status: { type: 'string', enum: ['HELD', 'PARTIALLY_RELEASED', 'RELEASED', 'REFUNDED'], example: 'HELD' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
@@ -289,6 +292,42 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' },
           },
         },
+        Wallet: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            userId: { type: 'integer', example: 2 },
+            balance: { type: 'string', example: '1500.00' },
+            currency: { type: 'string', example: 'USD' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        WalletTransaction: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            walletId: { type: 'integer', example: 1 },
+            userId: { type: 'integer', example: 2 },
+            type: {
+              type: 'string',
+              enum: ['MOCK_TOP_UP', 'ESCROW_HOLD', 'ESCROW_RELEASE', 'ESCROW_REFUND', 'ADMIN_ADJUSTMENT'],
+              example: 'MOCK_TOP_UP',
+            },
+            direction: { type: 'string', enum: ['CREDIT', 'DEBIT'], example: 'CREDIT' },
+            amount: { type: 'string', example: '2000.00' },
+            balanceBefore: { type: 'string', example: '0.00' },
+            balanceAfter: { type: 'string', example: '2000.00' },
+            currency: { type: 'string', example: 'USD' },
+            status: { type: 'string', enum: ['SUCCESS', 'FAILED'], example: 'SUCCESS' },
+            contractId: { type: 'integer', nullable: true, example: 1 },
+            milestoneId: { type: 'integer', nullable: true, example: 1 },
+            paymentId: { type: 'integer', nullable: true, example: 1 },
+            metadata: { type: 'object', nullable: true, additionalProperties: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
         Dispute: {
           type: 'object',
           properties: {
@@ -348,6 +387,7 @@ const options = {
       reviewsDocs,
       messagesDocs,
       notificationsDocs,
+      walletDocs,
       disputesDocs,
       adminDocs,
     ),
@@ -356,4 +396,3 @@ const options = {
 };
 
 module.exports = swaggerJsdoc(options);
-

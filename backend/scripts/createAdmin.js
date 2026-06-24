@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const bcrypt = require('bcrypt');
 const sequelize = require('../src/config/database');
-const { User } = require('../src/models');
+const { User, Wallet } = require('../src/models');
 
 const SALT_ROUNDS = 10;
 const DEFAULT_ADMIN_EMAIL = 'admin@test.com';
@@ -24,16 +24,28 @@ const createAdmin = async () => {
         role: 'ADMIN',
         status: 'ACTIVE',
       });
+      await Wallet.findOrCreate({
+        where: { userId: existingUser.id },
+        defaults: {
+          balance: '0.00',
+          currency: 'USD',
+        },
+      });
 
       console.log(`Admin user updated: ${email}`);
       return;
     }
 
-    await User.create({
+    const admin = await User.create({
       email,
       passwordHash,
       role: 'ADMIN',
       status: 'ACTIVE',
+    });
+    await Wallet.create({
+      userId: admin.id,
+      balance: '0.00',
+      currency: 'USD',
     });
 
     console.log(`Admin user created: ${email}`);
@@ -46,4 +58,3 @@ const createAdmin = async () => {
 };
 
 createAdmin();
-

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { acceptBid, createBid, getTaskBids } from '../api/bidApi.js';
 import { fallbackCategories } from '../api/categoryApi.js';
 import { deleteTask, getTaskById, updateTask } from '../api/taskApi.js';
@@ -54,6 +55,7 @@ function normalizeBid(bid, taskId) {
 function TaskDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { socket, status: socketStatus } = useSocket();
   const [task, setTask] = useState(null);
@@ -96,11 +98,11 @@ function TaskDetailsPage() {
       const nextBids = (data.bids || data || []).map((bid) => normalizeBid(bid, id));
       setBids(nextBids);
     } catch (requestError) {
-      setBidsError(requestError.message || 'Unable to load bids.');
+      setBidsError(requestError.message || t('bids.unableToLoad'));
     } finally {
       setAreBidsLoading(false);
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -117,7 +119,7 @@ function TaskDetailsPage() {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load task.');
+          setError(requestError.message || t('tasks.unableToLoadTask'));
         }
       } finally {
         if (isMounted) {
@@ -131,7 +133,7 @@ function TaskDetailsPage() {
     return () => {
       isMounted = false;
     };
-  }, [loadBids, loadTask]);
+  }, [loadBids, loadTask, t]);
 
   useEffect(() => {
     if (!socket || !id) {
@@ -188,7 +190,7 @@ function TaskDetailsPage() {
     event.preventDefault();
 
     if (!form.title.trim() || !form.description.trim() || Number(form.budget) <= 0 || !form.deadline || !form.categoryId) {
-      setFormError('Please fill in title, description, budget, deadline and category.');
+      setFormError(t('tasks.formValidation'));
       return;
     }
 
@@ -210,7 +212,7 @@ function TaskDetailsPage() {
       setForm(buildEditForm(updatedTask));
       setIsEditing(false);
     } catch (requestError) {
-      setFormError(requestError.message || 'Unable to update task.');
+      setFormError(requestError.message || t('tasks.unableToUpdate'));
     } finally {
       setIsSaving(false);
     }
@@ -224,7 +226,7 @@ function TaskDetailsPage() {
       await deleteTask(id);
       navigate('/tasks', { replace: true });
     } catch (requestError) {
-      setFormError(requestError.message || 'Unable to delete task.');
+      setFormError(requestError.message || t('tasks.unableToDelete'));
       setIsDeleting(false);
     }
   };
@@ -234,17 +236,17 @@ function TaskDetailsPage() {
     setBidMessage('');
 
     if (Number(bidForm.price) <= 0) {
-      setBidMessage('Price must be greater than 0.');
+      setBidMessage(t('bids.priceValidation'));
       return;
     }
 
     if (!Number.isInteger(Number(bidForm.deliveryDays)) || Number(bidForm.deliveryDays) <= 0) {
-      setBidMessage('Delivery days must be greater than 0.');
+      setBidMessage(t('bids.daysValidation'));
       return;
     }
 
     if (bidForm.comment.length > 1000) {
-      setBidMessage('Comment must be 1000 characters or less.');
+      setBidMessage(t('bids.commentValidation'));
       return;
     }
 
@@ -265,12 +267,12 @@ function TaskDetailsPage() {
           : [...currentBids, nextBid].sort((first, second) => Number(first.price) - Number(second.price))
       ));
       setBidForm(initialBidForm);
-      setBidMessage('Your bid has been submitted.');
+      setBidMessage(t('bids.submitted'));
     } catch (requestError) {
       setBidMessage(
         requestError.response?.status === 409
-          ? 'You have already submitted a bid for this task.'
-          : requestError.message || 'Unable to submit bid.',
+          ? t('bids.alreadySubmitted')
+          : requestError.message || t('bids.unableToSubmit'),
       );
     } finally {
       setIsBidSubmitting(false);
@@ -285,9 +287,9 @@ function TaskDetailsPage() {
       await acceptBid(id, bidId);
       await loadTask();
       await loadBids();
-      setBidMessage('Bid accepted. Contract has been created.');
+      setBidMessage(t('bids.accepted'));
     } catch (requestError) {
-      setBidMessage(requestError.message || 'Unable to accept bid.');
+      setBidMessage(requestError.message || t('bids.unableToAccept'));
     } finally {
       setAcceptingBidId(null);
     }
@@ -297,8 +299,8 @@ function TaskDetailsPage() {
     return (
       <div className="state-card">
         <span className="loading-state__spinner" />
-        <strong>Loading task</strong>
-        <p>Fetching task details.</p>
+        <strong>{t('common.loading')}</strong>
+        <p>{t('tasks.unableToLoadTask')}</p>
       </div>
     );
   }
@@ -307,7 +309,7 @@ function TaskDetailsPage() {
     return (
       <div className="state-card state-card--error">
         <strong>{error}</strong>
-        <Link className="btn btn-secondary" to="/tasks">Back to tasks</Link>
+        <Link className="btn btn-secondary" to="/tasks">{t('tasks.backToTasks')}</Link>
       </div>
     );
   }
@@ -315,37 +317,37 @@ function TaskDetailsPage() {
   return (
     <div className="page-stack">
       <PageSection
-        eyebrow="Task details"
+        eyebrow={t('tasks.detailsEyebrow')}
         title={task.title}
-        description="Review the task, client details, bids and delivery constraints."
-        action={<Link className="btn btn-secondary" to="/tasks">Back to tasks</Link>}
+        description={t('tasks.detailsDescription')}
+        action={<Link className="btn btn-secondary" to="/tasks">{t('tasks.backToTasks')}</Link>}
       >
         <div className="detail-grid">
           <article className="panel task-detail-panel">
             <div className="task-card__top">
-              <span className={`status-pill status-pill--${task.status?.toLowerCase()}`}>{task.status}</span>
+              <span className={`status-pill status-pill--${task.status?.toLowerCase()}`}>{t(`status.${task.status}`)}</span>
               <span className="task-card__category">{getCategoryName(task)}</span>
             </div>
             <p>{task.description}</p>
           </article>
 
           <article className="panel details-list">
-            <h3>Project info</h3>
+            <h3>{t('tasks.projectInfo')}</h3>
             <dl>
               <div>
-                <dt>Budget</dt>
+                <dt>{t('tasks.budget')}</dt>
                 <dd>{formatMoney(task.budget)}</dd>
               </div>
               <div>
-                <dt>Deadline</dt>
+                <dt>{t('tasks.deadline')}</dt>
                 <dd>{task.deadline}</dd>
               </div>
               <div>
-                <dt>Client</dt>
+                <dt>{t('tasks.client')}</dt>
                 <dd>{getClientName(task)}</dd>
               </div>
               <div>
-                <dt>Created</dt>
+                <dt>{t('common.created')}</dt>
                 <dd>{task.createdAt ? new Date(task.createdAt).toLocaleDateString() : 'N/A'}</dd>
               </div>
             </dl>
@@ -355,16 +357,16 @@ function TaskDetailsPage() {
         {user?.role === 'CLIENT' ? (
           <div className="panel task-actions-panel">
             <div>
-              <h3>Client controls</h3>
-              <p>Backend ownership checks protect these actions. Open tasks can be edited or deleted.</p>
+              <h3>{t('tasks.clientControls')}</h3>
+              <p>{t('tasks.clientControlsText')}</p>
             </div>
             <div className="button-row">
               <button className="btn btn-secondary" type="button" disabled={!canEdit} onClick={() => setIsEditing((current) => !current)}>
-                {isEditing ? 'Cancel edit' : 'Edit'}
+                {isEditing ? t('tasks.cancelEdit') : t('common.edit')}
               </button>
               {task.status === 'OPEN' ? (
                 <button className="btn btn-danger" type="button" disabled={!isOwner || isDeleting} onClick={handleDelete}>
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  {isDeleting ? t('tasks.deleting') : t('common.delete')}
                 </button>
               ) : null}
             </div>
@@ -374,27 +376,27 @@ function TaskDetailsPage() {
         {isEditing && form ? (
           <form className="form-grid form-card task-form" onSubmit={handleSave}>
             <label className="form-field">
-              <span>Title</span>
+              <span>{t('common.title')}</span>
               <input name="title" value={form.title} onChange={handleChange} required />
             </label>
             <label className="form-field">
-              <span>Description</span>
+              <span>{t('common.description')}</span>
               <textarea name="description" rows="6" value={form.description} onChange={handleChange} required />
             </label>
             <div className="form-grid form-grid--columns">
               <label className="form-field">
-                <span>Budget</span>
+                <span>{t('tasks.budget')}</span>
                 <input name="budget" type="number" min="1" value={form.budget} onChange={handleChange} required />
               </label>
               <label className="form-field">
-                <span>Deadline</span>
+                <span>{t('tasks.deadline')}</span>
                 <input name="deadline" type="date" value={form.deadline} onChange={handleChange} required />
               </label>
             </div>
             <label className="form-field">
-              <span>Category</span>
+              <span>{t('tasks.category')}</span>
               <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-                <option value="">Select category</option>
+                <option value="">{t('tasks.selectCategory')}</option>
                 {fallbackCategories.map((category) => (
                   <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
@@ -402,7 +404,7 @@ function TaskDetailsPage() {
             </label>
             {formError ? <p className="form-error">{formError}</p> : null}
             <button className="btn btn-primary" type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save changes'}
+              {isSaving ? t('tasks.saving') : t('tasks.saveChanges')}
             </button>
           </form>
         ) : formError ? (
@@ -411,40 +413,40 @@ function TaskDetailsPage() {
       </PageSection>
 
       <PageSection
-        eyebrow="Bids"
-        title="Auction bids"
-        description="Compare freelancer offers by price, delivery time and reputation."
+        eyebrow={t('bids.eyebrow')}
+        title={t('bids.title')}
+        description={t('bids.description')}
       >
         {socketStatus !== 'connected' ? (
-          <div className="socket-note">Realtime connection is {socketStatus}. The list still refreshes after actions.</div>
+          <div className="socket-note">{t('bids.realtime', { status: socketStatus })}</div>
         ) : null}
 
         {canSubmitBid ? (
           <form className="form-grid form-card bid-form" onSubmit={handleSubmitBid}>
             <div className="form-grid form-grid--columns">
               <label className="form-field">
-                <span>Price</span>
+                <span>{t('common.price')}</span>
                 <input name="price" type="number" min="1" value={bidForm.price} onChange={handleBidChange} placeholder="450" required />
               </label>
               <label className="form-field">
-                <span>Delivery days</span>
+                <span>{t('bids.deliveryDays')}</span>
                 <input name="deliveryDays" type="number" min="1" value={bidForm.deliveryDays} onChange={handleBidChange} placeholder="7" required />
               </label>
             </div>
             <label className="form-field">
-              <span>Comment</span>
-              <textarea name="comment" rows="4" maxLength="1000" value={bidForm.comment} onChange={handleBidChange} placeholder="I can complete this task." />
+              <span>{t('bids.comment')}</span>
+              <textarea name="comment" rows="4" maxLength="1000" value={bidForm.comment} onChange={handleBidChange} placeholder={t('bids.commentPlaceholder')} />
             </label>
             <button className="btn btn-primary" type="submit" disabled={isBidSubmitting}>
-              {isBidSubmitting ? 'Submitting...' : 'Submit bid'}
+              {isBidSubmitting ? t('bids.submitting') : t('bids.submitBid')}
             </button>
           </form>
         ) : null}
 
         {biddingClosed ? (
           <div className="state-card">
-            <strong>Bidding is closed for this task.</strong>
-            <p>The task is no longer accepting new bids.</p>
+            <strong>{t('bids.closed')}</strong>
+            <p>{t('bids.closedText')}</p>
           </div>
         ) : null}
 
@@ -453,8 +455,8 @@ function TaskDetailsPage() {
         {areBidsLoading ? (
           <div className="state-card">
             <span className="loading-state__spinner" />
-            <strong>Loading bids</strong>
-            <p>Fetching freelancer offers.</p>
+            <strong>{t('bids.loading')}</strong>
+            <p>{t('bids.loadingText')}</p>
           </div>
         ) : null}
 
@@ -466,8 +468,8 @@ function TaskDetailsPage() {
 
         {!areBidsLoading && !bidsError && bids.length === 0 ? (
           <div className="state-card">
-            <strong>No bids yet</strong>
-            <p>When freelancers submit offers, they will appear here in realtime.</p>
+            <strong>{t('bids.empty')}</strong>
+            <p>{t('bids.emptyText')}</p>
           </div>
         ) : null}
 
@@ -478,26 +480,26 @@ function TaskDetailsPage() {
                 <div className="bid-card__header">
                   <div>
                     <h3>{getFreelancerName(bid)}</h3>
-                    <p>Rating: {Number(bid.freelancer?.rating || 0).toFixed(2)}</p>
+                    <p>{t('bids.rating')}: {Number(bid.freelancer?.rating || 0).toFixed(2)}</p>
                   </div>
-                  <span className={`status-pill status-pill--${bid.status?.toLowerCase()}`}>{bid.status}</span>
+                  <span className={`status-pill status-pill--${bid.status?.toLowerCase()}`}>{t(`status.${bid.status}`)}</span>
                 </div>
 
                 <div className="task-card__meta">
                   <span>
                     <strong>{formatMoney(bid.price)}</strong>
-                    Price
+                    {t('common.price')}
                   </span>
                   <span>
-                    <strong>{bid.deliveryDays} days</strong>
-                    Delivery
+                    <strong>{t('bids.days', { count: bid.deliveryDays })}</strong>
+                    {t('bids.delivery')}
                   </span>
                 </div>
 
-                {bid.comment ? <p>{bid.comment}</p> : <p>No comment provided.</p>}
+                {bid.comment ? <p>{bid.comment}</p> : <p>{t('bids.noComment')}</p>}
 
                 <div className="bid-card__footer">
-                  <span>{bid.createdAt ? new Date(bid.createdAt).toLocaleString() : 'Recently'}</span>
+                  <span>{bid.createdAt ? new Date(bid.createdAt).toLocaleString() : t('bids.recently')}</span>
                   {isOwner && task.status === 'OPEN' && bid.status === 'PENDING' ? (
                     <button
                       className="btn btn-primary"
@@ -505,7 +507,7 @@ function TaskDetailsPage() {
                       disabled={acceptingBidId === bid.id}
                       onClick={() => handleAcceptBid(bid.id)}
                     >
-                      {acceptingBidId === bid.id ? 'Accepting...' : 'Accept bid'}
+                      {acceptingBidId === bid.id ? t('bids.accepting') : t('bids.acceptBid')}
                     </button>
                   ) : null}
                 </div>

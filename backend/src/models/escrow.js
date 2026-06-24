@@ -19,8 +19,13 @@ Escrow.init(
       unique: true,
     },
     amount: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
+    },
+    releasedAmount: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: 0,
     },
     status: {
       type: DataTypes.ENUM('HELD', 'PARTIALLY_RELEASED', 'RELEASED', 'REFUNDED'),
@@ -36,4 +41,3 @@ Escrow.init(
 );
 
 module.exports = Escrow;
-

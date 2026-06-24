@@ -13,6 +13,9 @@ const {
 } = require('../../models');
 const { createNotification } = require('../../services/notificationService');
 const { createLog } = require('../../services/logService');
+const {
+  debitForEscrowHold,
+} = require('../wallet/wallet.service');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -209,12 +212,13 @@ const acceptBid = async (userId, taskId, bidId, options = {}) => {
         {
           contractId: contract.id,
           amount: bid.price,
+          releasedAmount: '0.00',
           status: 'HELD',
         },
         { transaction },
       );
 
-      await Payment.create(
+      const payment = await Payment.create(
         {
           contractId: contract.id,
           fromUserId: clientProfile.userId,
@@ -225,6 +229,19 @@ const acceptBid = async (userId, taskId, bidId, options = {}) => {
         },
         { transaction },
       );
+
+      const walletResult = await debitForEscrowHold({
+        userId: clientProfile.userId,
+        amount: bid.price,
+        contractId: contract.id,
+        paymentId: payment.id,
+        metadata: {
+          taskId: task.id,
+          bidId: bid.id,
+          currency: 'USD',
+        },
+        transaction,
+      });
 
       await Milestone.create(
         {
@@ -240,7 +257,9 @@ const acceptBid = async (userId, taskId, bidId, options = {}) => {
 
       return {
         contractId: contract.id,
+        clientUserId: clientProfile.userId,
         freelancerUserId: freelancerProfile.userId,
+        escrowHoldTransactionId: walletResult.transaction.id,
       };
     } catch (error) {
       if (error.name === 'SequelizeUniqueConstraintError') {
@@ -261,6 +280,14 @@ const acceptBid = async (userId, taskId, bidId, options = {}) => {
     io: options.io,
   });
 
+  await createNotification({
+    userId: result.clientUserId,
+    title: 'Funds reserved',
+    message: 'Funds were reserved in escrow.',
+    type: 'SYSTEM',
+    io: options.io,
+  });
+
   await createLog({
     userId,
     action: 'CONTRACT_CREATED',
@@ -270,6 +297,19 @@ const acceptBid = async (userId, taskId, bidId, options = {}) => {
       taskId,
       bidId,
       freelancerId: contract.freelancerId,
+    },
+  });
+
+  await createLog({
+    userId,
+    action: 'ESCROW_HOLD',
+    entityType: 'WalletTransaction',
+    entityId: result.escrowHoldTransactionId,
+    metadata: {
+      contractId: contract.id,
+      taskId,
+      bidId,
+      currency: 'USD',
     },
   });
 

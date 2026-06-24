@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getAdminDisputes,
   resolveDispute,
@@ -8,11 +9,12 @@ import PageSection from '../components/PageSection.jsx';
 const limit = 20;
 const statuses = ['OPEN', 'RESOLVED', 'REJECTED'];
 
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : 'N/A';
+function formatDate(value, fallback) {
+  return value ? new Date(value).toLocaleDateString() : fallback;
 }
 
 function AdminDisputesPage() {
+  const { t } = useTranslation();
   const [disputes, setDisputes] = useState([]);
   const [status, setStatus] = useState('');
   const [offset, setOffset] = useState(0);
@@ -40,7 +42,7 @@ function AdminDisputesPage() {
       setDisputes(data.disputes || []);
       setCount(data.count || 0);
     } catch (requestError) {
-      setError(requestError.message || 'Unable to load disputes.');
+      setError(requestError.message || t('common.couldNotLoad'));
       setDisputes([]);
       setCount(0);
     } finally {
@@ -50,13 +52,13 @@ function AdminDisputesPage() {
 
   useEffect(() => {
     loadDisputes();
-  }, [params]);
+  }, [params, t]);
 
   const handleResolve = async (dispute, nextStatus) => {
     const adminComment = commentById[dispute.id] || '';
 
     if (!adminComment.trim()) {
-      setMessage('Please add an admin comment before resolving a dispute.');
+      setMessage(t('admin.commentRequired'));
       return;
     }
 
@@ -69,9 +71,9 @@ function AdminDisputesPage() {
         adminComment: adminComment.trim(),
       });
       await loadDisputes();
-      setMessage(`Dispute ${nextStatus.toLowerCase()} successfully.`);
+      setMessage(t('admin.disputeUpdated', { status: t(`status.${nextStatus}`) }));
     } catch (requestError) {
-      setMessage(requestError.message || 'Unable to resolve dispute.');
+      setMessage(requestError.message || t('admin.unableToResolve'));
     } finally {
       setActingDisputeId(null);
     }
@@ -79,16 +81,16 @@ function AdminDisputesPage() {
 
   return (
     <PageSection
-      eyebrow="Admin"
-      title="Disputes"
-      description="Review open disputes and record admin decisions with clear comments."
+      eyebrow={t('admin.eyebrow')}
+      title={t('admin.disputesTitle')}
+      description={t('admin.disputesDescription')}
     >
       <div className="filter-card filter-card--compact">
         <label className="form-field">
-          <span>Status</span>
+          <span>{t('common.status')}</span>
           <select value={status} onChange={(event) => { setStatus(event.target.value); setOffset(0); }}>
-            <option value="">ALL</option>
-            {statuses.map((item) => <option key={item} value={item}>{item}</option>)}
+            <option value="">{t('common.all')}</option>
+            {statuses.map((item) => <option key={item} value={item}>{t(`status.${item}`)}</option>)}
           </select>
         </label>
       </div>
@@ -98,7 +100,7 @@ function AdminDisputesPage() {
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading disputes</strong>
+          <strong>{t('admin.loadingDisputes')}</strong>
         </div>
       ) : null}
 
@@ -106,8 +108,8 @@ function AdminDisputesPage() {
 
       {!isLoading && !error && disputes.length === 0 ? (
         <div className="state-card">
-          <strong>No disputes found</strong>
-          <p>Open disputes will appear here for admin review.</p>
+          <strong>{t('disputes.empty')}</strong>
+          <p>{t('disputes.emptyText')}</p>
         </div>
       ) : null}
 
@@ -118,20 +120,20 @@ function AdminDisputesPage() {
               <article key={dispute.id} className="admin-card">
                 <div className="bid-card__header">
                   <div>
-                    <span className="contract-card__eyebrow">Dispute #{dispute.id}</span>
-                    <h3>Contract #{dispute.contractId}</h3>
+                    <span className="contract-card__eyebrow">{t('disputes.eyebrow')} #{dispute.id}</span>
+                    <h3>{t('contracts.contract', { id: dispute.contractId })}</h3>
                   </div>
-                  <span className={`status-pill status-pill--${dispute.status?.toLowerCase()}`}>{dispute.status}</span>
+                  <span className={`status-pill status-pill--${dispute.status?.toLowerCase()}`}>{t(`status.${dispute.status}`)}</span>
                 </div>
 
                 <p>{dispute.reason}</p>
 
                 <div className="details-list details-list--compact">
                   <dl>
-                    <div><dt>Opened by</dt><dd>{dispute.openedByUser?.email || 'N/A'}</dd></div>
-                    <div><dt>Resolved by</dt><dd>{dispute.resolvedByAdmin?.email || 'N/A'}</dd></div>
-                    <div><dt>Created</dt><dd>{formatDate(dispute.createdAt)}</dd></div>
-                    <div><dt>Resolved</dt><dd>{formatDate(dispute.resolvedAt)}</dd></div>
+                    <div><dt>{t('admin.openedBy')}</dt><dd>{dispute.openedByUser?.email || t('common.notAvailable')}</dd></div>
+                    <div><dt>{t('admin.resolvedBy')}</dt><dd>{dispute.resolvedByAdmin?.email || t('common.notAvailable')}</dd></div>
+                    <div><dt>{t('common.created')}</dt><dd>{formatDate(dispute.createdAt, t('common.notAvailable'))}</dd></div>
+                    <div><dt>{t('disputes.resolved')}</dt><dd>{formatDate(dispute.resolvedAt, t('common.notAvailable'))}</dd></div>
                   </dl>
                 </div>
 
@@ -140,20 +142,20 @@ function AdminDisputesPage() {
                 {dispute.status === 'OPEN' ? (
                   <div className="milestone-actions">
                     <label className="form-field">
-                      <span>Admin comment</span>
+                      <span>{t('admin.adminComment')}</span>
                       <textarea
                         rows="3"
                         value={commentById[dispute.id] || ''}
                         onChange={(event) => setCommentById((current) => ({ ...current, [dispute.id]: event.target.value }))}
-                        placeholder="The dispute was reviewed and resolved."
+                        placeholder={t('admin.commentPlaceholder')}
                       />
                     </label>
                     <div className="button-row">
                       <button className="btn btn-primary" type="button" disabled={actingDisputeId === dispute.id} onClick={() => handleResolve(dispute, 'RESOLVED')}>
-                        Resolve
+                        {t('admin.resolve')}
                       </button>
                       <button className="btn btn-danger" type="button" disabled={actingDisputeId === dispute.id} onClick={() => handleResolve(dispute, 'REJECTED')}>
-                        Reject
+                        {t('admin.reject')}
                       </button>
                     </div>
                   </div>
@@ -163,9 +165,9 @@ function AdminDisputesPage() {
           </div>
 
           <div className="pagination-bar">
-            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>Previous</button>
-            <span>{count} disputes</span>
-            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>Next</button>
+            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>{t('common.previous')}</button>
+            <span>{count} {t('navigation.adminDisputes').toLowerCase()}</span>
+            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>{t('common.next')}</button>
           </div>
         </>
       ) : null}

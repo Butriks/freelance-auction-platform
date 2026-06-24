@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createMessage, getContractMessages } from '../api/messageApi.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSocket } from '../context/SocketContext.jsx';
 
-function formatTime(value) {
-  return value ? new Date(value).toLocaleString() : 'Just now';
+function formatTime(value, fallback) {
+  return value ? new Date(value).toLocaleString() : fallback;
 }
 
 function normalizeMessage(message, contractId) {
@@ -15,6 +16,7 @@ function normalizeMessage(message, contractId) {
 }
 
 function ContractChat({ contractId }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { socket, status: socketStatus } = useSocket();
   const [messages, setMessages] = useState([]);
@@ -41,7 +43,7 @@ function ContractChat({ contractId }) {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load messages.');
+          setError(requestError.message || t('chat.unableToLoad'));
         }
       } finally {
         if (isMounted) {
@@ -55,7 +57,7 @@ function ContractChat({ contractId }) {
     return () => {
       isMounted = false;
     };
-  }, [contractId]);
+  }, [contractId, t]);
 
   useEffect(() => {
     if (!socket || !contractId) {
@@ -101,12 +103,12 @@ function ContractChat({ contractId }) {
 
     const trimmedText = text.trim();
     if (!trimmedText) {
-      setError('Message text is required.');
+      setError(t('chat.validation'));
       return;
     }
 
     if (trimmedText.length > 5000) {
-      setError('Message must be 5000 characters or less.');
+      setError(t('chat.validation'));
       return;
     }
 
@@ -124,7 +126,7 @@ function ContractChat({ contractId }) {
       ));
       setText('');
     } catch (requestError) {
-      setError(requestError.message || 'Unable to send message.');
+      setError(requestError.message || t('chat.unableToSend'));
     } finally {
       setIsSending(false);
     }
@@ -134,16 +136,16 @@ function ContractChat({ contractId }) {
     <section className="chat-card">
       <div className="chat-card__header">
         <div>
-          <p className="page-section__eyebrow">Contract Chat</p>
-          <h2>Messages</h2>
+          <p className="page-section__eyebrow">{t('chat.title')}</p>
+          <h2>{t('chat.message')}</h2>
         </div>
-        <span className="socket-note socket-note--compact">Realtime: {socketStatus}</span>
+        <span className="socket-note socket-note--compact">{t('bids.realtime', { status: socketStatus })}</span>
       </div>
 
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading messages</strong>
+          <strong>{t('chat.loading')}</strong>
         </div>
       ) : null}
 
@@ -151,8 +153,8 @@ function ContractChat({ contractId }) {
 
       {!isLoading && messages.length === 0 ? (
         <div className="state-card">
-          <strong>No messages yet</strong>
-          <p>Start the contract conversation when there is something to coordinate.</p>
+          <strong>{t('chat.empty')}</strong>
+          <p>{t('chat.emptyText')}</p>
         </div>
       ) : null}
 
@@ -164,11 +166,11 @@ function ContractChat({ contractId }) {
             return (
               <article key={message.id} className={`message-bubble${isMine ? ' message-bubble--mine' : ''}`}>
                 <div className="message-bubble__meta">
-                  <strong>{message.sender?.email || 'User'}</strong>
+                  <strong>{message.sender?.email || t('common.name')}</strong>
                   <span>{message.sender?.role || 'USER'}</span>
                 </div>
                 <p>{message.text}</p>
-                <time>{formatTime(message.createdAt)}</time>
+                <time>{formatTime(message.createdAt, t('bids.recently'))}</time>
               </article>
             );
           })}
@@ -177,18 +179,18 @@ function ContractChat({ contractId }) {
 
       <form className="chat-form" onSubmit={handleSubmit}>
         <label className="form-field">
-          <span>Message</span>
+          <span>{t('chat.message')}</span>
           <textarea
             rows="3"
             maxLength="5000"
             value={text}
             onChange={(event) => setText(event.target.value)}
-            placeholder="Hello, I have uploaded the first version."
+            placeholder={t('chat.placeholder')}
             required
           />
         </label>
         <button className="btn btn-primary" type="submit" disabled={isSending}>
-          {isSending ? 'Sending...' : 'Send'}
+          {isSending ? t('chat.sending') : t('chat.send')}
         </button>
       </form>
     </section>

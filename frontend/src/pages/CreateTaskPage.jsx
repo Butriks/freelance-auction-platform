@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { fallbackCategories } from '../api/categoryApi.js';
 import { createTask } from '../api/taskApi.js';
 import PageSection from '../components/PageSection.jsx';
@@ -12,25 +13,25 @@ const initialForm = {
   categoryId: '',
 };
 
-function validateTaskForm(form) {
+function validateTaskForm(form, t) {
   if (!form.title.trim()) {
-    return 'Title is required.';
+    return t('tasks.titleRequired');
   }
 
   if (!form.description.trim()) {
-    return 'Description is required.';
+    return t('tasks.descriptionRequired');
   }
 
   if (!form.budget || Number(form.budget) <= 0) {
-    return 'Budget must be greater than 0.';
+    return t('tasks.budgetRequired');
   }
 
   if (!form.deadline) {
-    return 'Deadline is required.';
+    return t('tasks.deadlineRequired');
   }
 
   if (!form.categoryId) {
-    return 'Category is required.';
+    return t('tasks.categoryRequired');
   }
 
   return '';
@@ -38,6 +39,7 @@ function validateTaskForm(form) {
 
 function CreateTaskPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +52,7 @@ function CreateTaskPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const validationError = validateTaskForm(form);
+    const validationError = validateTaskForm(form, t);
     if (validationError) {
       setError(validationError);
       return;
@@ -72,7 +74,7 @@ function CreateTaskPage() {
 
       navigate(taskId ? `/tasks/${taskId}` : '/tasks', { replace: true });
     } catch (requestError) {
-      setError(requestError.message || 'Unable to create task.');
+      setError(requestError.message || t('tasks.unableToCreate'));
     } finally {
       setIsSubmitting(false);
     }
@@ -80,38 +82,38 @@ function CreateTaskPage() {
 
   return (
     <PageSection
-      eyebrow="Create task"
-      title="Post a new project"
-      description="Describe the work clearly so freelancers can place accurate bids."
+      eyebrow={t('tasks.createTitle')}
+      title={t('tasks.postTitle')}
+      description={t('tasks.postDescription')}
     >
       <form className="form-grid form-card task-form" onSubmit={handleSubmit}>
         <label className="form-field">
-          <span>Title</span>
+          <span>{t('common.title')}</span>
           <input
             name="title"
             type="text"
             value={form.title}
             onChange={handleChange}
-            placeholder="Create landing page"
+            placeholder={t('tasks.titlePlaceholder')}
             required
           />
         </label>
 
         <label className="form-field">
-          <span>Description</span>
+          <span>{t('common.description')}</span>
           <textarea
             name="description"
             rows="6"
             value={form.description}
             onChange={handleChange}
-            placeholder="Need a responsive landing page for a small business"
+            placeholder={t('tasks.descriptionPlaceholder')}
             required
           />
         </label>
 
         <div className="form-grid form-grid--columns">
           <label className="form-field">
-            <span>Budget</span>
+            <span>{t('tasks.budget')}</span>
             <input
               name="budget"
               type="number"
@@ -124,7 +126,7 @@ function CreateTaskPage() {
           </label>
 
           <label className="form-field">
-            <span>Deadline</span>
+            <span>{t('tasks.deadline')}</span>
             <input
               name="deadline"
               type="date"
@@ -136,9 +138,9 @@ function CreateTaskPage() {
         </div>
 
         <label className="form-field">
-          <span>Category</span>
+          <span>{t('tasks.category')}</span>
           <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-            <option value="">Select category</option>
+            <option value="">{t('tasks.selectCategory')}</option>
             {fallbackCategories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
             ))}
@@ -148,7 +150,7 @@ function CreateTaskPage() {
         {error ? <p className="form-error">{error}</p> : null}
 
         <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Publishing...' : 'Publish task'}
+          {isSubmitting ? t('tasks.publishing') : t('tasks.publish')}
         </button>
       </form>
     </PageSection>

@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAdminLogs } from '../api/adminApi.js';
 import PageSection from '../components/PageSection.jsx';
 
 const limit = 50;
 
-function formatDate(value) {
-  return value ? new Date(value).toLocaleString() : 'N/A';
+function formatDate(value, fallback) {
+  return value ? new Date(value).toLocaleString() : fallback;
 }
 
-function metadataPreview(metadata) {
+function metadataPreview(metadata, fallback) {
   if (!metadata) {
-    return 'N/A';
+    return fallback;
   }
 
   const raw = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
@@ -18,6 +19,7 @@ function metadataPreview(metadata) {
 }
 
 function AdminLogsPage() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [count, setCount] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -52,7 +54,7 @@ function AdminLogsPage() {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load logs.');
+          setError(requestError.message || t('common.couldNotLoad'));
           setLogs([]);
           setCount(0);
         }
@@ -68,7 +70,7 @@ function AdminLogsPage() {
     return () => {
       isMounted = false;
     };
-  }, [params]);
+  }, [params, t]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -90,33 +92,33 @@ function AdminLogsPage() {
 
   return (
     <PageSection
-      eyebrow="Admin"
-      title="Action logs"
-      description="Audit important events across users, tasks, contracts, reviews and messages."
+      eyebrow={t('admin.eyebrow')}
+      title={t('admin.logsTitle')}
+      description={t('admin.logsDescription')}
     >
       <form className="filter-card admin-filter-card" onSubmit={applyFilters}>
         <label className="form-field">
-          <span>Action</span>
+          <span>{t('admin.action')}</span>
           <input name="action" value={filters.action} onChange={handleChange} placeholder="TASK_CREATED" />
         </label>
         <label className="form-field">
-          <span>Entity type</span>
+          <span>{t('admin.entityType')}</span>
           <input name="entityType" value={filters.entityType} onChange={handleChange} placeholder="Task" />
         </label>
         <label className="form-field">
-          <span>User ID</span>
+          <span>{t('admin.userId')}</span>
           <input name="userId" type="number" min="1" value={filters.userId} onChange={handleChange} placeholder="1" />
         </label>
         <div className="filter-card__actions">
-          <button className="btn btn-primary" type="submit">Apply</button>
-          <button className="btn btn-secondary" type="button" onClick={resetFilters}>Reset</button>
+          <button className="btn btn-primary" type="submit">{t('common.apply')}</button>
+          <button className="btn btn-secondary" type="button" onClick={resetFilters}>{t('common.reset')}</button>
         </div>
       </form>
 
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading logs</strong>
+          <strong>{t('admin.loadingLogs')}</strong>
         </div>
       ) : null}
 
@@ -124,8 +126,8 @@ function AdminLogsPage() {
 
       {!isLoading && !error && logs.length === 0 ? (
         <div className="state-card">
-          <strong>No logs found</strong>
-          <p>Try another filter or wait for more platform activity.</p>
+          <strong>{t('admin.logsEmpty')}</strong>
+          <p>{t('admin.logsEmptyText')}</p>
         </div>
       ) : null}
 
@@ -136,24 +138,24 @@ function AdminLogsPage() {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Entity</th>
-                  <th>Entity ID</th>
-                  <th>Metadata</th>
-                  <th>Created</th>
+                  <th>{t('common.name')}</th>
+                  <th>{t('admin.action')}</th>
+                  <th>{t('admin.entityType')}</th>
+                  <th>{t('admin.entityType')} ID</th>
+                  <th>{t('admin.metadata')}</th>
+                  <th>{t('common.created')}</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log) => (
                   <tr key={log.id}>
                     <td>{log.id}</td>
-                    <td>{log.user?.email || 'System'}</td>
+                    <td>{log.user?.email || t('admin.system')}</td>
                     <td>{log.action}</td>
                     <td>{log.entityType}</td>
-                    <td>{log.entityId || 'N/A'}</td>
-                    <td><pre className="metadata-preview">{metadataPreview(log.metadata)}</pre></td>
-                    <td>{formatDate(log.createdAt)}</td>
+                    <td>{log.entityId || t('common.notAvailable')}</td>
+                    <td><pre className="metadata-preview">{metadataPreview(log.metadata, t('common.notAvailable'))}</pre></td>
+                    <td>{formatDate(log.createdAt, t('common.notAvailable'))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -161,9 +163,9 @@ function AdminLogsPage() {
           </div>
 
           <div className="pagination-bar">
-            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>Previous</button>
-            <span>{count} logs</span>
-            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>Next</button>
+            <button className="btn btn-secondary" type="button" disabled={!hasPrevious} onClick={() => setOffset((current) => Math.max(0, current - limit))}>{t('common.previous')}</button>
+            <span>{count} {t('navigation.adminLogs').toLowerCase()}</span>
+            <button className="btn btn-secondary" type="button" disabled={!hasNext} onClick={() => setOffset((current) => current + limit)}>{t('common.next')}</button>
           </div>
         </>
       ) : null}

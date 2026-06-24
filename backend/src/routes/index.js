@@ -9,6 +9,7 @@ const messageRoutes = require('../modules/messages/message.routes');
 const notificationRoutes = require('../modules/notifications/notification.routes');
 const disputeRoutes = require('../modules/disputes/dispute.routes');
 const adminRoutes = require('../modules/admin/admin.routes');
+const walletRoutes = require('../modules/wallet/wallet.routes');
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/api', milestoneRoutes);
 router.use('/api', reviewRoutes);
 router.use('/api', messageRoutes);
 router.use('/api', notificationRoutes);
+router.use('/api', walletRoutes);
 router.use('/api', disputeRoutes);
 router.use('/api/admin', adminRoutes);
 router.use('/api/tasks/:taskId/bids', bidRoutes);

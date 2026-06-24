@@ -45,6 +45,18 @@ class User extends Model {
       onDelete: 'SET NULL',
     });
 
+    User.hasOne(models.Wallet, {
+      foreignKey: 'userId',
+      as: 'wallet',
+      onDelete: 'CASCADE',
+    });
+
+    User.hasMany(models.WalletTransaction, {
+      foreignKey: 'userId',
+      as: 'walletTransactions',
+      onDelete: 'CASCADE',
+    });
+
     User.hasMany(models.Dispute, {
       foreignKey: 'openedByUserId',
       as: 'openedDisputes',

@@ -153,6 +153,15 @@ module.exports = {
                     payments: { type: 'object' },
                     reviews: { type: 'object' },
                     disputes: { type: 'object' },
+                    wallet: {
+                      type: 'object',
+                      properties: {
+                        walletBalancesTotalUsd: { type: 'number', example: 5000 },
+                        walletTransactionsTotal: { type: 'integer', example: 3 },
+                        totalEscrowHeldUsd: { type: 'number', example: 450 },
+                        totalEscrowReleasedUsd: { type: 'number', example: 300 },
+                      },
+                    },
                   },
                 },
               },
@@ -163,4 +172,3 @@ module.exports = {
     },
   },
 };
-

@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNotifications } from '../context/NotificationContext.jsx';
+import LanguageSwitcher from './LanguageSwitcher.jsx';
 
 function Header() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
 
@@ -16,24 +19,26 @@ function Header() {
   return (
     <header className="app-header">
       <div>
-        <p className="app-header__eyebrow">Freelance Auction Platform</p>
-        <h1 className="app-header__title">Workspace</h1>
+        <p className="app-header__eyebrow">{t('common.appName')}</p>
+        <h1 className="app-header__title">{t('common.workspace')}</h1>
       </div>
 
       <div className="user-menu">
+        <LanguageSwitcher />
+
         <Link className="notification-link" to="/notifications">
-          Notifications
+          {t('header.notifications')}
           {unreadCount > 0 ? <span className="notification-badge">{unreadCount}</span> : null}
         </Link>
 
         <div className="user-menu__info">
-          <span className="user-menu__label">Signed in as</span>
-          <strong>{user?.email || 'Guest'}</strong>
+          <span className="user-menu__label">{t('header.signedInAs')}</span>
+          <strong>{user?.email || t('header.guest')}</strong>
           {user?.role ? <span className="role-badge">{user.role}</span> : null}
         </div>
 
         <button className="btn btn-secondary" type="button" onClick={handleLogout}>
-          Logout
+          {t('header.logout')}
         </button>
       </div>
     </header>

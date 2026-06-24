@@ -13,10 +13,13 @@ const {
   Review,
   Dispute,
   Log,
+  Wallet,
+  WalletTransaction,
 } = require('../../models');
 const { createNotification } = require('../../services/notificationService');
 const { createLog } = require('../../services/logService');
 const { contractParticipantInclude, disputeIncludes } = require('../disputes/dispute.service');
+const { decimalToCents, centsToDecimal } = require('../wallet/wallet.service');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -405,6 +408,9 @@ const getAnalytics = async () => {
     averageRatingRaw,
     totalDisputes,
     disputeStatuses,
+    walletBalancesRaw,
+    walletTransactionsTotal,
+    escrows,
   ] = await Promise.all([
     User.count(),
     User.count({ where: { role: 'CLIENT' } }),
@@ -432,7 +438,37 @@ const getAnalytics = async () => {
     Review.findOne({ attributes: [[fn('AVG', col('rating')), 'averageRating']], raw: true }),
     Dispute.count(),
     countByStatus(Dispute, ['OPEN', 'RESOLVED', 'REJECTED']),
+    Wallet.findAll({
+      where: { currency: 'USD' },
+      attributes: ['balance'],
+    }),
+    WalletTransaction.count({
+      where: {
+        currency: 'USD',
+        status: 'SUCCESS',
+      },
+    }),
+    Escrow.findAll({
+      attributes: ['amount', 'releasedAmount', 'status'],
+    }),
   ]);
+
+  const walletBalancesTotalCents = walletBalancesRaw.reduce(
+    (sum, wallet) => sum + decimalToCents(wallet.balance),
+    0n,
+  );
+  const escrowReleasedCents = escrows.reduce(
+    (sum, escrow) => sum + decimalToCents(escrow.releasedAmount || '0.00'),
+    0n,
+  );
+  const escrowHeldCents = escrows.reduce((sum, escrow) => {
+    if (!['HELD', 'PARTIALLY_RELEASED'].includes(escrow.status)) {
+      return sum;
+    }
+
+    const held = decimalToCents(escrow.amount) - decimalToCents(escrow.releasedAmount || '0.00');
+    return sum + (held > 0n ? held : 0n);
+  }, 0n);
 
   return {
     users: {
@@ -477,6 +513,12 @@ const getAnalytics = async () => {
       resolved: disputeStatuses.RESOLVED,
       rejected: disputeStatuses.REJECTED,
     },
+    wallet: {
+      walletBalancesTotalUsd: Number(centsToDecimal(walletBalancesTotalCents)),
+      walletTransactionsTotal,
+      totalEscrowHeldUsd: Number(centsToDecimal(escrowHeldCents)),
+      totalEscrowReleasedUsd: Number(centsToDecimal(escrowReleasedCents)),
+    },
   };
 };
 
@@ -491,4 +533,3 @@ module.exports = {
   getLogs,
   getAnalytics,
 };
-

@@ -1,22 +1,46 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAdminAnalytics } from '../api/adminApi.js';
 import PageSection from '../components/PageSection.jsx';
 
 const sections = [
-  { key: 'users', title: 'Users', items: ['total', 'clients', 'freelancers', 'admins', 'blocked'] },
-  { key: 'tasks', title: 'Tasks', items: ['total', 'open', 'inProgress', 'completed', 'cancelled'] },
-  { key: 'contracts', title: 'Contracts', items: ['total', 'active', 'completed', 'disputed', 'cancelled'] },
-  { key: 'bids', title: 'Bids', items: ['total', 'pending', 'accepted', 'rejected', 'averagePrice'] },
-  { key: 'payments', title: 'Payments', items: ['totalDeposited', 'totalReleased'] },
-  { key: 'reviews', title: 'Reviews', items: ['total', 'averageRating'] },
-  { key: 'disputes', title: 'Disputes', items: ['total', 'open', 'resolved', 'rejected'] },
+  { key: 'users', titleKey: 'dashboard.stats.totalUsers', items: ['total', 'clients', 'freelancers', 'admins', 'blocked'] },
+  { key: 'tasks', titleKey: 'dashboard.stats.totalTasks', items: ['total', 'open', 'inProgress', 'completed', 'cancelled'] },
+  { key: 'contracts', titleKey: 'dashboard.stats.contracts', items: ['total', 'active', 'completed', 'disputed', 'cancelled'] },
+  { key: 'bids', titleKey: 'bids.eyebrow', items: ['total', 'pending', 'accepted', 'rejected', 'averagePrice'] },
+  { key: 'payments', titleKey: 'contracts.paymentsTitle', items: ['totalDeposited', 'totalReleased'] },
+  { key: 'reviews', titleKey: 'reviews.title', items: ['total', 'averageRating'] },
+  { key: 'disputes', titleKey: 'disputes.eyebrow', items: ['total', 'open', 'resolved', 'rejected'] },
 ];
 
-function labelFromKey(key) {
-  return key.replace(/([A-Z])/g, ' $1').replace(/^./, (letter) => letter.toUpperCase());
+function labelFromKey(key, t) {
+  const labels = {
+    total: t('dashboard.stats.totalTasks').replace(' tasks', ''),
+    clients: 'CLIENT',
+    freelancers: 'FREELANCER',
+    admins: 'ADMIN',
+    blocked: t('status.BLOCKED'),
+    open: t('status.OPEN'),
+    inProgress: t('status.IN_PROGRESS'),
+    completed: t('status.COMPLETED'),
+    cancelled: t('status.CANCELLED'),
+    active: t('status.ACTIVE'),
+    disputed: t('status.DISPUTED'),
+    pending: t('status.PENDING'),
+    accepted: t('status.ACCEPTED'),
+    rejected: t('status.REJECTED'),
+    resolved: t('status.RESOLVED'),
+    averagePrice: t('admin.averagePrice'),
+    totalDeposited: t('dashboard.stats.totalDeposited'),
+    totalReleased: t('dashboard.stats.totalReleased'),
+    averageRating: t('dashboard.stats.averageRating'),
+  };
+
+  return labels[key] || key;
 }
 
 function AdminAnalyticsPage() {
+  const { t } = useTranslation();
   const [analytics, setAnalytics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,7 +60,7 @@ function AdminAnalyticsPage() {
         }
       } catch (requestError) {
         if (isMounted) {
-          setError(requestError.message || 'Unable to load analytics.');
+          setError(requestError.message || t('dashboard.couldNotLoadAnalytics'));
         }
       } finally {
         if (isMounted) {
@@ -50,18 +74,18 @@ function AdminAnalyticsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [t]);
 
   return (
     <PageSection
-      eyebrow="Admin"
-      title="Marketplace analytics"
-      description="High-level platform health across users, tasks, contracts, payments, reviews and disputes."
+      eyebrow={t('admin.eyebrow')}
+      title={t('admin.analyticsTitle')}
+      description={t('admin.analyticsDescription')}
     >
       {isLoading ? (
         <div className="state-card">
           <span className="loading-state__spinner" />
-          <strong>Loading analytics</strong>
+          <strong>{t('admin.loadingAnalytics')}</strong>
         </div>
       ) : null}
 
@@ -71,11 +95,11 @@ function AdminAnalyticsPage() {
         <div className="admin-analytics-stack">
           {sections.map((section) => (
             <section key={section.key} className="admin-analytics-section">
-              <h3>{section.title}</h3>
+              <h3>{t(section.titleKey)}</h3>
               <div className="stats-grid admin-stats-grid">
                 {section.items.map((item) => (
                   <article key={item} className="stat-card">
-                    <span className="stat-card__label">{labelFromKey(item)}</span>
+                    <span className="stat-card__label">{labelFromKey(item, t)}</span>
                     <strong className="stat-card__value">{analytics[section.key]?.[item] ?? 0}</strong>
                   </article>
                 ))}
